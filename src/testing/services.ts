@@ -6,6 +6,7 @@ import { ProfileName } from "../domain/ids.js"
 import type { FigmaRestApi } from "../ports/FigmaRestApi.js"
 import type { TokenStore } from "../ports/TokenStore.js"
 import type { OAuthFlow, OAuthLoginRequest, OAuthRefreshRequest, OAuthRefreshResult } from "../ports/OAuthFlow.js"
+import type { SourceCode, SourceCodeRead } from "../ports/SourceCode.js"
 import type { DriverState } from "./state.js"
 
 class InMemoryTokenStore implements TokenStore {
@@ -49,6 +50,26 @@ class FakeFigmaRestApi implements FigmaRestApi {
   }
 }
 
+class FakeSourceCode implements SourceCode {
+  constructor(private readonly state: DriverState) {}
+
+  async read(paths: readonly string[]): Promise<SourceCodeRead> {
+    const files = []
+    const skipped = []
+    for (const path of paths) {
+      const text = this.state.sourceFiles.get(path)
+      if (text === undefined) {
+        const under = [...this.state.sourceFiles].filter(([name]) => name.startsWith(`${path}/`))
+        if (under.length === 0) skipped.push(`${path}: no such file or directory`)
+        for (const [name, contents] of under) files.push({ path: name, text: contents })
+        continue
+      }
+      files.push({ path, text })
+    }
+    return { files, skipped }
+  }
+}
+
 class FakeOAuthFlow implements OAuthFlow {
   constructor(private readonly state: DriverState) {}
 
@@ -74,5 +95,6 @@ export const createTestServices = (state: DriverState): CliServices => ({
   tokenStore: new InMemoryTokenStore(state),
   figmaRestApi: new FakeFigmaRestApi(state),
   endpointCatalog: new BundledEndpointCatalog(),
-  oauthFlow: new FakeOAuthFlow(state)
+  oauthFlow: new FakeOAuthFlow(state),
+  sourceCode: new FakeSourceCode(state)
 })

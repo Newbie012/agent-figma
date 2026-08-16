@@ -4,7 +4,7 @@ packages:
 
 versioning:
   lanes:
-    "@eliya-oss/agent-figma": beta
+    "@eliya-oss/agent-figma": alpha
 
 allowBuilds:
   esbuild: true

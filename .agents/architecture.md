@@ -51,7 +51,7 @@ src/
   cli/          argument parser, command metadata
   domain/       IDs, URL parsing, models, tagged errors
   application/  command dispatch and output orchestration
-  ports/        infrastructure contracts
+  ports/        infrastructure contracts, including the local files node compare reads
   adapters/     live Figma, profile, keychain, catalog implementations
   output/       envelopes and human rendering
   testing/      TestDriver and fake adapters

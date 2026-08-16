@@ -99,7 +99,7 @@ jobs:
           exit 1
 
       - if: steps.plan.outputs.pending == 'true'
-        name: Publish to the beta channel
+        name: Publish to the alpha channel
         run: pnpm release:publish
 
       - if: steps.plan.outputs.pending == 'true'
@@ -110,7 +110,7 @@ jobs:
           NAME=$(node -p "require('./package.json').name")
           for ATTEMPT in 1 2 3 4 5 6; do
             if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
-              echo "::notice::$NAME@$VERSION is on the registry under the beta tag."
+              echo "::notice::$NAME@$VERSION is on the registry under the alpha tag."
               exit 0
             fi
             sleep 10

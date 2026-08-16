@@ -70,10 +70,7 @@ node payload and wrong on the page.
 
 ## Out of scope
 
-- Comparing a node against a component library or a stylesheet and reporting mismatches. It is the
-  most valuable thing after this and needs its own PRD: it has to decide what a mismatch is, what it
-  reads on the code side, and what it does about a difference that is intentional. Tracked as
-  ISSUE-009.
+- Comparing a node against the code that implements it. That is [PRD-005](005-comparing-against-code.md).
 - Publishing tokens as a stylesheet, a Tailwind config, or any other code artifact. This PRD reports
   what Figma says; generating code from it is a separate product decision.
 - Variable modes. `variables/local` carries a value per mode; this PRD resolves names only, because

@@ -37,9 +37,11 @@ const chain = (node: Record<string, unknown>): string => {
     : [parent["horizontal"], parent["width"] === undefined ? undefined : round(Number(parent["width"]))]
       .filter((part) => part !== undefined)
       .join(" ")
+  const fixed = isRecord(sizing["constrainedBy"]) ? sizing["constrainedBy"] : undefined
   const parts = [
     typeof own === "string" ? `own=${own}` : undefined,
-    above === undefined || above === "" ? undefined : `parent=${above}`
+    above === undefined || above === "" ? undefined : `parent=${above}`,
+    fixed === undefined ? undefined : `fixed by ${String(fixed["name"] ?? "a frame above")} ${fixed["width"] === undefined ? "" : round(Number(fixed["width"]))}`.trimEnd()
   ].filter((part): part is string => part !== undefined)
   return parts.length === 0 ? "" : ` (${parts.join(", ")})`
 }

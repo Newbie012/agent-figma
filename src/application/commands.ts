@@ -20,6 +20,7 @@ import {
   variableNames,
   type Ancestor
 } from "../domain/anatomy.js"
+import { compare } from "../domain/compare.js"
 import { UsageError, WriteOperationBlocked } from "../domain/errors.js"
 import { normalizeNodeId, parseFigmaReference, type AuthProfile, type Paging } from "../domain/figma.js"
 import { ProfileName, Scope } from "../domain/ids.js"
@@ -110,6 +111,8 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
     }, { method: "node.get", fileKey: reference.fileKey, ancestors: !flagBoolean(parsed, "no-ancestors") })
   }
 
+  if (first === "node" && second === "compare") return compareNode(parsed, services)
+
   if (first === "file" && second === "comments" && third === "list") {
     const reference = fileReference(parsed, 3)
     return remoteCall(parsed, services, "file.comments.list", { file_key: reference.fileKey }, { fileKey: reference.fileKey })
@@ -137,6 +140,32 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
   if (first === "style" && second === "get") return remoteCall(parsed, services, "style.get", { key: requirePositional(parsed, 2, "STYLE_KEY") })
 
   throw unknownCommand(parsed.positionals)
+}
+
+// Reads the node, then the paths the caller named, and reports what the design
+// expects that the code never mentions. A mention is not proof of use, which is
+// why the answer is a list of expectations rather than a verdict.
+const compareNode = async (parsed: ParsedArgs, services: CliServices): Promise<DispatchResult> => {
+  const reference = fileReference(parsed, 2)
+  const rawNodeId = flagString(parsed, "id") ?? reference.nodeId
+  if (rawNodeId === undefined) throw new UsageError({ message: "Pass a Figma node URL or provide --id NODE_ID", argument: "id" })
+  const paths = splitCsv(requireFlag(parsed, "code"))
+  if (paths.length === 0) throw new UsageError({ message: "Name at least one file or directory with --code", argument: "code" })
+  const node = await remoteCall(parsed, services, "file.nodes.get", {
+    key: reference.fileKey,
+    ids: normalizeNodeId(rawNodeId)
+  }, { method: "node.compare", fileKey: reference.fileKey })
+  const source = await services.sourceCode.read(paths)
+  const comparison = compare(node.data, source.files)
+  return {
+    ...node,
+    data: comparison,
+    warnings: [
+      ...(node.warnings ?? []),
+      ...source.skipped.map((skipped) => `Not compared against ${skipped}.`),
+      ...(source.files.length === 0 ? ["No file was read, so every expectation is reported as missing."] : [])
+    ]
+  }
 }
 
 const unknownCommand = (positionals: readonly string[]): UsageError =>
@@ -352,7 +381,7 @@ const readVariables = async (
   try {
     return variableNames((await read({ path })).data)
   } catch (cause) {
-    warnings.push(`Variable names are unresolved: GET ${path} ${reasonFor(cause)}. Bound variables are reported as raw ids, which still show where one token is shared. That endpoint is Enterprise-only.`)
+    warnings.push(`Variable names are unresolved: GET ${path} ${reasonFor(cause)}. Bound variables are reported as raw ids, which still show where one token is shared. The endpoint needs a token with the file_variables:read scope, on a plan that exposes variables.`)
     return {}
   }
 }
@@ -373,9 +402,12 @@ const readAncestors = async (
   }
 }
 
+// Figma says why in the body, and its reason is more useful than the status:
+// a 403 here is usually a token without file_variables:read, which is fixable.
 const reasonFor = (cause: unknown): string => {
-  const status = typeof cause === "object" && cause !== null && "status" in cause ? (cause as { status?: number }).status : undefined
-  return status === undefined ? "could not be read" : `answered ${status}`
+  const failure = typeof cause === "object" && cause !== null ? cause as { status?: number; message?: string } : {}
+  const status = failure.status === undefined ? "could not be read" : `answered ${failure.status}`
+  return typeof failure.message === "string" && failure.message !== "" ? `${status}: ${failure.message}` : status
 }
 
 const requestedNodeIds = (data: unknown): readonly string[] => {

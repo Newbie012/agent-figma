@@ -265,6 +265,38 @@ describe("the sizing chain", () => {
     expect(driver.figma.listCalls().filter((call) => call.path === "/v1/files/key")).toHaveLength(1)
   })
 
+  it("names the frame that fixed the width when the parent only filled it", async () => {
+    await using driver = await FigmaCliTestDriver.create()
+    driver.auth.setProfile()
+    driver.figma.overrideGet({
+      path: "/v1/files/key/nodes",
+      query: { ids: "9:9" },
+      data: { nodes: { "9:9": { document: { id: "9:9", name: "Panel", type: "FRAME", layoutSizingHorizontal: "FILL", absoluteBoundingBox: { width: 850, height: 100 } }, styles: {} } } }
+    })
+    driver.figma.overrideGet({
+      path: "/v1/files/key",
+      query: { ids: "9:9" },
+      data: { document: { id: "0:0", type: "DOCUMENT", children: [
+        { id: "0:1", name: "Page", type: "CANVAS", children: [
+          { id: "1:1", name: "Header", type: "FRAME", layoutSizingHorizontal: "FIXED", absoluteBoundingBox: { width: 850, height: 400 }, children: [
+            { id: "2:2", name: "Column", type: "FRAME", layoutSizingHorizontal: "FILL", absoluteBoundingBox: { width: 850, height: 200 }, children: [
+              { id: "9:9", name: "Panel", type: "FRAME", layoutSizingHorizontal: "FILL", absoluteBoundingBox: { width: 850, height: 100 } }
+            ] }
+          ] }
+        ] }
+      ] } }
+    })
+
+    const result = await driver.cli.runJson({ args: ["node", "get", "key", "--id", "9:9", "--json"] })
+    const document = nodesOf(result.envelope)["9:9"]?.document as Record<string, unknown>
+
+    expect(document["sizing"]).toMatchObject({
+      horizontal: "FILL",
+      parent: { name: "Column", horizontal: "FILL", width: 850 },
+      constrainedBy: { name: "Header", horizontal: "FIXED", width: 850 }
+    })
+  })
+
   it("still answers, with a warning, when the chain cannot be read", async () => {
     await using driver = await arrange({ ancestorsFail: true })
 

@@ -19,6 +19,7 @@ Goal: expose bounded, deterministic, read-only Figma context to terminals and AI
 - A flag the command does not declare is refused. Reading past a mistyped flag turns a typo into a silently different answer, which is the one failure a caller cannot see.
 - A refusal names the way out: the nearest command when one is mistyped, a noun's verbs when the verb is missing, and the flag it was one keystroke from.
 - `api endpoints list`, `api endpoint describe`, and `api call` provide one discovery and execution flow.
+- `node compare` reads local files the caller names, to report which of the design's tokens and sizes the code never mentions. It is a text scan, so it proves mention rather than use, and it says so. Nothing read from disk leaves the process.
 - No command mutates remote Figma state.
 
 ## Commands
@@ -42,6 +43,7 @@ agent-figma file nodes get FILE_OR_URL --ids NODE_ID[,NODE_ID] [--depth N] [--an
 agent-figma node get FIGMA_URL [--depth N] [--no-ancestors] --json
 agent-figma node get FILE_OR_URL --id NODE_ID --json
 agent-figma node get FIGMA_URL --format tree
+agent-figma node compare FIGMA_NODE_URL --code PATH[,PATH] --json
 agent-figma file comments list FILE_OR_URL --json
 agent-figma file versions list FILE_OR_URL --json
 agent-figma image render FILE_OR_URL --ids NODE_ID[,NODE_ID] [--format png|jpg|svg|pdf] [--scale N] --json

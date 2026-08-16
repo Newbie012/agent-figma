@@ -21,6 +21,7 @@ src/testing/
   domains/
     auth/
     cli/
+    code/
     figma/
 ```
 
@@ -33,6 +34,8 @@ driver.auth.completeOAuth
 driver.auth.overrideRefresh
 driver.figma.overrideGet
 driver.figma.listCalls
+driver.code.setFiles
+driver.code.clearFiles
 driver.cli.run
 driver.cli.runJson
 driver.snapshot

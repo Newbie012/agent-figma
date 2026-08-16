@@ -1,11 +1,11 @@
-# ADR-009 - pnpm's own release tooling, on a beta lane
+# ADR-009 - pnpm's own release tooling, on an alpha lane
 
 ## Decision
 
 Release with pnpm 12's built-in tooling instead of Changesets. `pnpm change` records an intent,
 `pnpm version -r` applies the pending intents and writes the changelog, and `pnpm lane` keeps the
-package on the `beta` channel, recorded in `pnpm-workspace.yaml`. Publishing is OIDC trusted
-publishing under the `beta` dist-tag. pnpm is pinned to `12.0.0-rc.6` in `packageManager`.
+package on the `alpha` channel, recorded in `pnpm-workspace.yaml`. Publishing is OIDC trusted
+publishing under the `alpha` dist-tag. pnpm is pinned to `12.0.0-rc.6` in `packageManager`.
 
 `@changesets/cli` is removed. The intent files stay Changesets-compatible Markdown in `.changeset/`.
 
@@ -17,7 +17,7 @@ That needs a record of what changed, a changelog, and a version scheme that keep
 
 Changesets does all three, and its pre-mode is the part that goes wrong — a stateful thing you enter
 and exit, easy to leave in the wrong state, and invisible in a diff. A lane is a fact about the
-package written in the workspace file: while it says `beta`, no intent can cut a stable release, and
+package written in the workspace file: while it says `alpha`, no intent can cut a stable release, and
 graduating is one command with a visible diff.
 
 pnpm already ships the rest, so this is one fewer dependency doing a job the package manager does.
@@ -37,9 +37,9 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
   does not exist yet ([npm/cli#8544](https://github.com/npm/cli/issues/8544)), so the first release
   is published once by hand and the workflow holds with a notice until the package exists.
 - The lane number is taken from what is published on the registry, so a local dry run of an
-  unpublished package always says `beta.0`. Verified, not assumed.
+  unpublished package always says `alpha.0`. Verified, not assumed.
 - A lane produces the next prerelease of the *current* version and ignores the intent's bump type.
-  Harmless while everything is a patch on the way to `0.1.0`; re-check before leaving beta.
+  Harmless while everything is a patch on the way to `0.1.0`; re-check before leaving alpha.
 
 ## Alternatives considered
 
@@ -59,4 +59,4 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
   and the registry check that guards it.
 - The repository goes public, at which point npm generates provenance and `--provenance` should be
   verified rather than assumed.
-- The surface settles enough to leave `beta`, which is `pnpm lane main` plus the bump-type re-check.
+- The surface settles enough to leave `alpha`, which is `pnpm lane main` plus the bump-type re-check.

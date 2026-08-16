@@ -43,30 +43,27 @@ Ship Markdown documentation in `docs/`, with the command reference generated fro
 
 Generate and validate the bundled GET-only endpoint metadata from Figma's OpenAPI package. Preserve the reviewed operation names.
 
-## ISSUE-007 - Beta release
+## ISSUE-007 - First release
 
 - **Status:** in progress
 - **ADRs:** ADR-009
 
-Releasing runs on pnpm 12's own tooling, on the `beta` lane, over OIDC trusted publishing. What is
-left is the bootstrap in [`.agents/release.md`](../release.md): create the GitHub repository,
-publish `0.1.0-beta.0` by hand once, then configure the trusted publisher on npm so CI takes over.
+Releasing runs on pnpm 12's own tooling, on the `alpha` lane, over OIDC trusted publishing. What is
+left is the bootstrap in [`.agents/release.md`](../release.md): publish `0.1.0-alpha.0` by hand once,
+then configure the trusted publisher on npm so CI takes over.
 
 ## ISSUE-009 - Compare a node against the code that implements it
 
-- **Status:** todo
-- **PRDs:** PRD-004 names it out of scope
+- **Status:** done
+- **PRDs:** PRD-005
 
-Point the CLI at a node plus the component file and stylesheet that implement it, and report
-mismatches: a label using the design system's text component where the value uses raw markup
-inheriting the body size, for instance, which today is only caught by screenshotting the result.
-
-Needs its own PRD first. It has to decide what a mismatch is, what it reads on the code side, and
-what it does with a difference that was deliberate.
+`node compare` reports which of a design's tokens and sizes the named files never mention. It is a
+text scan by design: parsing the framework's semantics is a different product, and PRD-005 says so
+rather than implying the answer is more than it is.
 
 ## ISSUE-008 - Hosted authentication
 
 - **Status:** todo
 
 Deploy the OAuth relay, register the Figma app, and complete public-app review. Browser OAuth stays
-opt-in through `AGENT_FIGMA_OAUTH_RELAY_URL` until then; personal access tokens carry the beta.
+opt-in through `AGENT_FIGMA_OAUTH_RELAY_URL` until then; personal access tokens carry the alpha.

@@ -9,6 +9,7 @@ export interface FigmaStub {
 
 export interface DriverState {
   readonly profiles: AuthProfile[]
+  readonly sourceFiles: Map<string, string>
   readonly figmaStubs: FigmaStub[]
   readonly figmaCalls: FigmaGetInput[]
   readonly oauthLoginCalls: OAuthLoginRequest[]
@@ -20,6 +21,7 @@ export interface DriverState {
 
 export const createDriverState = (): DriverState => ({
   profiles: [],
+  sourceFiles: new Map(),
   figmaStubs: [],
   figmaCalls: [],
   oauthLoginCalls: [],

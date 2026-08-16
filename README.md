@@ -3,7 +3,7 @@
 Read Figma data from the command line with commands that work well in scripts and AI agents. Short alias: `afg`.
 
 ```bash
-npm install -g @eliya-oss/agent-figma@beta
+npm install -g @eliya-oss/agent-figma@alpha
 
 agent-figma auth login --token "$FIGMA_TOKEN"
 agent-figma file get "https://www.figma.com/design/FILE_KEY/name" --depth 2 --json
@@ -33,7 +33,7 @@ The docs are Markdown in [`docs/`](./docs/README.md), and ship with the package.
 - [Agent workflows](./docs/recipes/agent-workflows.md)
 - [Troubleshooting](./docs/reference/troubleshooting.md)
 
-This is a beta. Every release goes out under the `beta` tag, so name the tag when you install; `npm install -g @eliya-oss/agent-figma` on its own will not find it until 1.0.
+This is an alpha. Every release goes out under the `alpha` tag, so name the tag when you install; `npm install -g @eliya-oss/agent-figma` on its own will not find it until the surface settles.
 
 ## Development
 

@@ -10,10 +10,10 @@ Install agent-figma, verify the binary, and optionally add its agent skill.
 ## Install the CLI
 
 ```bash
-npm install -g @eliya-oss/agent-figma@beta
+npm install -g @eliya-oss/agent-figma@alpha
 ```
 
-Every release goes out under the `beta` tag while the surface settles, so name the tag. Nothing is
+Every release goes out under the `alpha` tag while the surface settles, so name the tag. Nothing is
 published to `latest` yet.
 
 Confirm both binary names:

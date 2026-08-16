@@ -148,7 +148,11 @@ const parentOf = (node: Record<string, unknown>): ParentSizing => ({
   ...present("width", numberAt(node["absoluteBoundingBox"], "width"))
 })
 
-const sizingOf = (node: Record<string, unknown>, parent: ParentSizing | undefined): Readonly<Record<string, unknown>> => {
+const sizingOf = (
+  node: Record<string, unknown>,
+  parent: ParentSizing | undefined,
+  constrainedBy?: ParentSizing
+): Readonly<Record<string, unknown>> => {
   const width = numberAt(node["absoluteBoundingBox"], "width")
   const height = numberAt(node["absoluteBoundingBox"], "height")
   const horizontal = stringAt(node, "layoutSizingHorizontal")
@@ -159,7 +163,8 @@ const sizingOf = (node: Record<string, unknown>, parent: ParentSizing | undefine
     ...present("height", height),
     ...present("horizontal", horizontal),
     ...present("vertical", vertical),
-    ...named
+    ...named,
+    ...present("constrainedBy", constrainedBy)
   }
 }
 
@@ -167,7 +172,8 @@ const annotate = (
   node: Record<string, unknown>,
   styles: Readonly<Record<string, string>>,
   sources: AnatomySources,
-  parent: ParentSizing | undefined
+  parent: ParentSizing | undefined,
+  constrainedBy?: ParentSizing
 ): Record<string, unknown> => {
   const children = node["children"]
   const own = parentOf(node)
@@ -178,7 +184,7 @@ const annotate = (
     ...styleTokens(node["styles"], styles),
     ...variableTokens(node["boundVariables"], sources.variables)
   }
-  const sizing = sizingOf(node, parent)
+  const sizing = sizingOf(node, parent, constrainedBy)
   return {
     ...node,
     ...walked,
@@ -199,6 +205,18 @@ const closestParent = (chain: readonly Ancestor[]): ParentSizing | undefined => 
   return Object.keys(parent).length === 0 ? undefined : parent
 }
 
+// A FILL parent is as measured as the node is. The number was chosen by the
+// nearest frame above that is FIXED, which can be several frames up.
+const fixedAbove = (chain: readonly Ancestor[]): ParentSizing | undefined => {
+  const found = [...chain].reverse().find((ancestor) => ancestor.horizontal === "FIXED")
+  if (found === undefined || found === chain[chain.length - 1]) return undefined
+  return {
+    ...present("name", found.name),
+    ...present("horizontal", found.horizontal),
+    ...present("width", found.width)
+  }
+}
+
 export const annotateAnatomy = (data: unknown, sources: AnatomySources): unknown => {
   if (!isRecord(data)) return data
   const styles = stylesOf(data)
@@ -212,7 +230,7 @@ export const annotateAnatomy = (data: unknown, sources: AnatomySources): unknown
         return [id, {
           ...entry,
           ...(chain.length === 0 ? {} : { ancestors: chain }),
-          document: annotate(entry["document"], styles, sources, closestParent(chain))
+          document: annotate(entry["document"], styles, sources, closestParent(chain), fixedAbove(chain))
         }]
       }))
     }

@@ -79,3 +79,35 @@ agent-figma node get FIGMA_NODE_URL --depth 3 --format tree
 ```
 
 Then go deeper on the branch you are actually building.
+
+## Check what you built against what was designed
+
+```bash
+agent-figma node compare FIGMA_NODE_URL --code src/components/Panel.tsx,src/styles
+```
+
+```text
+4 expected, 3 not mentioned, across 1 file
+
+  found   lg/semi-bold  text-style   src/components/Panel.tsx
+  missing md/regular    text-style   Asset type:, workload, Cluster: and 11 more
+  missing 12            font-size    M
+  missing 400           font-weight  M
+```
+
+It reads the node, reads the files you name, and reports each thing the design asks for and whether
+your code mentions it anywhere. A text node that names a style is expected to use the style, not the
+numbers behind it, so a component doing the right thing does not show up as three misses.
+
+Matching allows for how codebases spell things: `md/regular` also matches `md-regular`,
+`md_regular`, `md.regular` and `mdRegular`; `24` matches `24px`, `1.5rem`, `font-size: 24` and
+`text-[24px]`; `600` matches `font-600` and `semibold`.
+
+**What this is not.** It is a text scan. A mention proves the name appears in a file, not that the
+right element uses it, and a miss can be an intentional difference. It cannot see a computed style,
+an inherited one, or a class three files away — which is exactly the shape of the bug it is best at
+catching: a value that inherits the body size never mentions the style it was supposed to use.
+
+Files are read locally and never uploaded. A directory is walked for source and stylesheet files,
+skipping `node_modules`, `dist`, `build`, `coverage`, `.next` and `.turbo`. A path that cannot be
+read is named in `warnings`, and the rest is still compared.

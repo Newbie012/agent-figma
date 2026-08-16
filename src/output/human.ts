@@ -52,7 +52,49 @@ const arrayDetail = (details: Readonly<Record<string, unknown>> | undefined, key
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : []
 }
 
+type Finding = {
+  readonly kind: string
+  readonly value: string
+  readonly nodes: readonly string[]
+  readonly nodeCount?: number
+  readonly found: boolean
+  readonly file?: string
+}
+
+const isComparison = (value: unknown): value is {
+  readonly findings: readonly Finding[]
+  readonly summary: { readonly checked: number; readonly missing: number; readonly files: number }
+} =>
+  isRecord(value) && Array.isArray(value["findings"]) && isRecord(value["summary"])
+
+// A comparison is a list of expectations, so it reads as one: what the design
+// asks for, and whether the code says it anywhere.
+const renderComparison = (
+  comparison: { readonly findings: readonly Finding[]; readonly summary: { readonly checked: number; readonly missing: number; readonly files: number } },
+  paint: (name: PaintName, value: string) => string
+): readonly string[] => {
+  const missing = comparison.findings.filter((finding) => !finding.found)
+  const width = Math.max(0, ...comparison.findings.map((finding) => finding.value.length))
+  const kinds = Math.max(0, ...comparison.findings.map((finding) => finding.kind.length))
+  const line = (finding: Finding): string => {
+    const mark = finding.found ? paint("green", "found  ") : paint("red", "missing")
+    const more = finding.nodeCount === undefined ? "" : ` and ${finding.nodeCount - finding.nodes.length} more`
+    const where = finding.found ? finding.file ?? "" : `${finding.nodes.join(", ")}${more}`
+    return `  ${mark} ${pad(finding.value, width)}  ${paint("dim", pad(finding.kind, kinds))}  ${paint("dim", where)}`
+  }
+  return [
+    "",
+    paint("dim", `${comparison.summary.checked} expected, ${comparison.summary.missing} not mentioned, across ${comparison.summary.files} file${comparison.summary.files === 1 ? "" : "s"}`),
+    "",
+    ...comparison.findings.map(line),
+    ...(missing.length === 0
+      ? ["", paint("dim", "Every token and size the design asks for appears somewhere in the code read.")]
+      : ["", paint("dim", "A mention is not proof of use, and a miss is not proof of a bug. Read the nodes named beside each miss.")])
+  ]
+}
+
 const renderData = (value: unknown, paint: (name: PaintName, value: string) => string): readonly string[] => {
+  if (isComparison(value)) return renderComparison(value, paint)
   if (Array.isArray(value)) return ["", ...renderArray(value, paint)]
   if (isRecord(value)) {
     const primary = findPrimaryArray(value)

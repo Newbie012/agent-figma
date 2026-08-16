@@ -355,6 +355,32 @@ agent-figma node get FIGMA_NODE_URL --json
 
 Answers Figma node.
 
+### `agent-figma node compare FILE_OR_URL`
+
+Compare a node against the code that implements it.
+
+Reads `GET /v1/files/:key/nodes`.
+
+Scopes: `file_content:read`.
+
+```bash
+agent-figma node compare FILE_OR_URL --code PATH[,PATH] [--id NODE_ID] [--profile NAME] [--json] [--fields a,b.c]
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--code PATH[,PATH]` | Files or directories that implement the node. Read locally, never uploaded. (required) |
+| `--id NODE_ID` | The node to read, when the URL does not carry one. |
+| `--profile NAME` | Named auth profile. Defaults to `default`. |
+| `--json` | Answer with the JSON envelope, whatever stdout is attached to. |
+| `--fields a,b.c` | Project the data down to the named paths. |
+
+```bash
+agent-figma node compare FIGMA_NODE_URL --code src/components/Panel.tsx,src/styles
+```
+
+Answers the design's expectations, and which the code never mentions.
+
 ### `agent-figma file comments list FILE_OR_URL`
 
 List comments on a Figma file.
