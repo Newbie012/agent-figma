@@ -10,6 +10,7 @@ const endpoints: readonly EndpointMetadata[] = [
   endpoint("project.files.list", "/v1/projects/:project_id/files", ["files:read"]),
   endpoint("file.get", "/v1/files/:key", ["file_content:read"]),
   endpoint("file.nodes.get", "/v1/files/:key/nodes", ["file_content:read"]),
+  endpoint("file.variables.list", "/v1/files/:file_key/variables/local", ["file_variables:read"]),
   endpoint("file.comments.list", "/v1/files/:file_key/comments", ["file_comments:read"]),
   endpoint("file.versions.list", "/v1/files/:file_key/versions", ["file_versions:read"]),
   endpoint("image.render", "/v1/images/:key", ["file_content:read"]),

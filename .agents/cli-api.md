@@ -10,7 +10,9 @@ Goal: expose bounded, deterministic, read-only Figma context to terminals and AI
 - A Figma URL or raw file key is accepted anywhere a file is required.
 - `--json` is always available; non-TTY stdout defaults to JSON.
 - JSON is compact by default. `--pretty` restores indentation.
-- `--fields a,b.c` projects machine output; `--format ndjson` streams the primary collection.
+- `--fields a,b.c` projects machine output; `--format ndjson` streams the primary collection; `--format tree` prints one readable line per node.
+- Node reads resolve what the payload only references: text style names from the response's own `styles` map, and `boundVariables` into token names through `GET /v1/files/:file_key/variables/local`. Both land in an additive `tokens` object; an id that cannot be resolved stays an id and the envelope carries a warning.
+- Node reads report a `sizing` object with the node's own `layoutSizing*` and the containing frame's, because a `FILL` width is a measured number and the frame that fixes it is outside the returned subtree. `node get` reads that chain by default (`--no-ancestors` skips it); `file nodes get` reads it only with `--ancestors`.
 - Data goes to stdout. Errors go to stderr as stable envelopes.
 - `describe --json` is the machine-readable command catalog. Running the binary with no arguments prints a short banner to a terminal, and answers the same catalog everywhere else.
 - `--help` and `-h` work at every level, in any position: on a command they print its usage line, its flags and which are required, and on a noun they list its verbs. `--version` and `-v` print the version.
@@ -36,9 +38,10 @@ agent-figma user get --json
 agent-figma team projects list TEAM_ID --json
 agent-figma project files list PROJECT_ID --json
 agent-figma file get FILE_OR_URL [--depth N] --json
-agent-figma file nodes get FILE_OR_URL --ids NODE_ID[,NODE_ID] --json
-agent-figma node get FIGMA_URL --json
+agent-figma file nodes get FILE_OR_URL --ids NODE_ID[,NODE_ID] [--depth N] [--ancestors] --json
+agent-figma node get FIGMA_URL [--depth N] [--no-ancestors] --json
 agent-figma node get FILE_OR_URL --id NODE_ID --json
+agent-figma node get FIGMA_URL --format tree
 agent-figma file comments list FILE_OR_URL --json
 agent-figma file versions list FILE_OR_URL --json
 agent-figma image render FILE_OR_URL --ids NODE_ID[,NODE_ID] [--format png|jpg|svg|pdf] [--scale N] --json

@@ -51,6 +51,17 @@ agent-figma image render FILE_KEY --ids 12:34,56:78 --format png --scale 2 --jso
 
 Figma returns temporary image URLs. Your client must download or display them.
 
+## Read a frame you are about to build
+
+`--format tree` prints one readable line per node, with token names instead of raw numbers and the
+sizing chain that says whether a width was chosen or measured:
+
+```bash
+agent-figma node get FIGMA_NODE_URL --format tree
+```
+
+See [Implementing a design](./implementing-a-design.md).
+
 ## Stop when the answer is supported
 
 Do not expand from node to file, project, and team by default. Each extra read costs time, tokens, and Figma rate-limit budget.

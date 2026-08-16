@@ -2,8 +2,10 @@ import { UsageError } from "../domain/errors.js"
 import type { ParsedArgs } from "./types.js"
 
 const booleanFlags = new Set([
+  "ancestors",
   "help",
   "json",
+  "no-ancestors",
   "no-color",
   "no-open",
   "oauth",

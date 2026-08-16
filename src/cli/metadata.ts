@@ -16,17 +16,19 @@ export const FIGMA_READS = "Figma reads"
 export const REST_ACCESS = "REST access"
 
 export const flagCatalog: Readonly<Record<string, FlagMetadata>> = {
+  "--ancestors": { summary: "Also read the frames above the node, so a FILL size shows what fixes it." },
   "--auth-url-out": { value: "PATH", summary: "Write the authorization URL to a file for a headless handoff." },
   "--client-id": { value: "ID", summary: "Figma app client id, for self-hosted OAuth." },
   "--client-secret": { value: "SECRET", summary: "Figma app client secret. Used for this process and never stored." },
   "--depth": { value: "N", summary: "Bound how deep the document tree is read." },
   "--family": { value: "NAME", summary: "Only endpoints in this family." },
   "--fields": { value: "a,b.c", summary: "Project the data down to the named paths." },
-  "--format": { value: "json|ndjson|table", summary: "Choose the output representation." },
+  "--format": { value: "json|ndjson|table|tree", summary: "Choose the output representation. `tree` is one readable line per node." },
   "--help": { summary: "Print this page. Add --json for the same as metadata." },
   "--id": { value: "NODE_ID", summary: "The node to read, when the URL does not carry one." },
   "--ids": { value: "ID[,ID]", summary: "Node ids, written 1:2 or the 1-2 form a Figma URL uses." },
   "--json": { summary: "Answer with the JSON envelope, whatever stdout is attached to." },
+  "--no-ancestors": { summary: "Skip the extra read that names the frames above the node." },
   "--no-color": { summary: "Leave terminal colour off." },
   "--no-open": { summary: "Print the authorization URL instead of opening a browser." },
   "--oauth": { summary: "Use self-hosted OAuth with your own Figma app credentials." },
@@ -67,9 +69,9 @@ export const commandMetadata: readonly CommandMetadata[] = [
   command(["user", "get"], "Show the current Figma user.", FIGMA_READS, { flags: ["--profile", "--json", "--fields"], endpoints: ["GET /v1/me"], scopes: ["current_user:read"], output: "Figma user", examples: ["agent-figma user get --json"] }),
   command(["team", "projects", "list"], "List projects in a Figma team.", FIGMA_READS, { args: ["TEAM_ID"], flags: ["--profile", "--json", "--format", "--fields"], endpoints: ["GET /v1/teams/:team_id/projects"], scopes: ["projects:read"], output: "project list", examples: ["agent-figma team projects list 123 --json"] }),
   command(["project", "files", "list"], "List files in a Figma project.", FIGMA_READS, { args: ["PROJECT_ID"], flags: ["--profile", "--json", "--format", "--fields"], endpoints: ["GET /v1/projects/:project_id/files"], scopes: ["files:read"], output: "file list", examples: ["agent-figma project files list 123 --json"] }),
-  command(["file", "get"], "Read a Figma file, optionally bounded by depth.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--profile", "--depth", "--json", "--pretty", "--fields"], endpoints: ["GET /v1/files/:key"], scopes: ["file_content:read"], output: "Figma file", examples: ["agent-figma file get FIGMA_URL --depth 2 --json"] }),
-  command(["file", "nodes", "get"], "Read multiple nodes from a Figma file.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--ids", "--profile", "--json", "--fields"], required: ["--ids"], endpoints: ["GET /v1/files/:key/nodes"], scopes: ["file_content:read"], output: "Figma nodes", examples: ["agent-figma file nodes get FIGMA_URL --ids 1:2,3:4 --json"] }),
-  command(["node", "get"], "Read one node from a Figma file or node URL.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--id", "--profile", "--json", "--pretty", "--fields"], endpoints: ["GET /v1/files/:key/nodes"], scopes: ["file_content:read"], output: "Figma node", examples: ["agent-figma node get FIGMA_NODE_URL --json"] }),
+  command(["file", "get"], "Read a Figma file, optionally bounded by depth.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--profile", "--depth", "--json", "--pretty", "--format", "--fields"], endpoints: ["GET /v1/files/:key"], scopes: ["file_content:read"], output: "Figma file", examples: ["agent-figma file get FIGMA_URL --depth 2 --json"] }),
+  command(["file", "nodes", "get"], "Read multiple nodes from a Figma file.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--ids", "--depth", "--ancestors", "--profile", "--json", "--format", "--fields"], required: ["--ids"], endpoints: ["GET /v1/files/:key/nodes"], scopes: ["file_content:read"], output: "Figma nodes", examples: ["agent-figma file nodes get FIGMA_URL --ids 1:2,3:4 --json"] }),
+  command(["node", "get"], "Read one node from a Figma file or node URL.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--id", "--depth", "--no-ancestors", "--profile", "--json", "--pretty", "--format", "--fields"], endpoints: ["GET /v1/files/:key/nodes"], scopes: ["file_content:read"], output: "Figma node", examples: ["agent-figma node get FIGMA_NODE_URL --json"] }),
   command(["file", "comments", "list"], "List comments on a Figma file.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--profile", "--json", "--format", "--fields"], endpoints: ["GET /v1/files/:file_key/comments"], scopes: ["file_comments:read"], output: "comment list", examples: ["agent-figma file comments list FIGMA_URL --json"] }),
   command(["file", "versions", "list"], "List versions of a Figma file.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--profile", "--json", "--format", "--fields"], endpoints: ["GET /v1/files/:file_key/versions"], scopes: ["file_versions:read"], output: "version list", examples: ["agent-figma file versions list FIGMA_URL --json"] }),
   command(["image", "render"], "Render nodes from a Figma file.", FIGMA_READS, { args: ["FILE_OR_URL"], flags: ["--ids", "--format", "--scale", "--profile", "--json", "--fields"], required: ["--ids"], endpoints: ["GET /v1/images/:key"], scopes: ["file_content:read"], output: "rendered image URLs", examples: ["agent-figma image render FIGMA_URL --ids 1:2 --format png --json"] }),
@@ -182,7 +184,7 @@ const renderCommandHelp = (found: CommandMetadata): string => [
   "",
   "Usage",
   `  ${usageOf(found)}`,
-  ...section("Flags", (found.flags ?? []).map(flagLine(found))),
+  ...section("Flags", flagLines(found)),
   ...section("Reads", found.endpoints ?? []),
   ...section("Scopes", found.scopes === undefined ? [] : [found.scopes.join(", ")]),
   ...section("Examples", found.examples),
@@ -190,6 +192,12 @@ const renderCommandHelp = (found: CommandMetadata): string => [
   `Answers ${found.output}${found.safety === "read" ? "" : ", and deletes local state"}.`,
   ""
 ].join("\n")
+
+const flagLines = (found: CommandMetadata): readonly string[] => {
+  const flags = found.flags ?? []
+  const width = Math.max(0, ...flags.map((flag) => flagName(flag).length)) + 2
+  return flags.map(flagLine(found, width))
+}
 
 const renderCommandList = (visible: readonly CommandMetadata[], path: readonly string[]): string => {
   const groups = [...new Set(visible.map((item) => item.group))]
@@ -221,11 +229,14 @@ const flagUsage = (flag: string, required: boolean): string => {
   return required ? spelled : `[${spelled}]`
 }
 
-const flagLine = (found: CommandMetadata) => (flag: string): string => {
-  const info = flagCatalog[flag]
-  const name = info?.value === undefined ? flag : `${flag} ${info.value}`
-  const summary = `${info?.summary ?? ""}${isRequired(found, flag) ? " (required)" : ""}`
-  return `  ${pad(name, 24)}${summary}`.trimEnd()
+const flagName = (flag: string): string => {
+  const value = flagCatalog[flag]?.value
+  return value === undefined ? flag : `${flag} ${value}`
+}
+
+const flagLine = (found: CommandMetadata, width: number) => (flag: string): string => {
+  const summary = `${flagCatalog[flag]?.summary ?? ""}${isRequired(found, flag) ? " (required)" : ""}`
+  return `  ${pad(flagName(flag), width)}${summary}`.trimEnd()
 }
 
 const pad = (value: string, width: number): string => value + " ".repeat(Math.max(1, width - value.length))

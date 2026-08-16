@@ -13,12 +13,20 @@ import {
   usageOf
 } from "../cli/metadata.js"
 import type { CliExecutionOptions, ParsedArgs } from "../cli/types.js"
+import {
+  ancestorChain,
+  annotateAnatomy,
+  collectVariableIds,
+  variableNames,
+  type Ancestor
+} from "../domain/anatomy.js"
 import { UsageError, WriteOperationBlocked } from "../domain/errors.js"
 import { normalizeNodeId, parseFigmaReference, type AuthProfile, type Paging } from "../domain/figma.js"
 import { ProfileName, Scope } from "../domain/ids.js"
 import { serializeJson, successEnvelope, toNdjson } from "../output/envelope.js"
 import { renderHumanEnvelope } from "../output/human.js"
 import { projectFields } from "../output/projection.js"
+import { renderTree } from "../output/tree.js"
 import type { EndpointMetadata } from "../ports/EndpointCatalog.js"
 import { getProfile, sanitizeProfile } from "./auth.js"
 import type { CliServices } from "./services.js"
@@ -82,14 +90,24 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
   if (first === "file" && second === "nodes" && third === "get") {
     const reference = fileReference(parsed, 3)
     const ids = normalizeIds(requireFlag(parsed, "ids"))
-    return remoteCall(parsed, services, "file.nodes.get", { key: reference.fileKey, ids }, { fileKey: reference.fileKey })
+    const depth = parsePositiveInteger(flagString(parsed, "depth"), "depth")
+    return remoteCall(parsed, services, "file.nodes.get", {
+      key: reference.fileKey,
+      ids,
+      ...(depth === undefined ? {} : { depth })
+    }, { fileKey: reference.fileKey, ancestors: flagBoolean(parsed, "ancestors") })
   }
 
   if (first === "node" && second === "get") {
     const reference = fileReference(parsed, 2)
     const rawNodeId = flagString(parsed, "id") ?? reference.nodeId
     if (rawNodeId === undefined) throw new UsageError({ message: "Pass a Figma node URL or provide --id NODE_ID", argument: "id" })
-    return remoteCall(parsed, services, "file.nodes.get", { key: reference.fileKey, ids: normalizeNodeId(rawNodeId) }, { method: "node.get", fileKey: reference.fileKey })
+    const depth = parsePositiveInteger(flagString(parsed, "depth"), "depth")
+    return remoteCall(parsed, services, "file.nodes.get", {
+      key: reference.fileKey,
+      ids: normalizeNodeId(rawNodeId),
+      ...(depth === undefined ? {} : { depth })
+    }, { method: "node.get", fileKey: reference.fileKey, ancestors: !flagBoolean(parsed, "no-ancestors") })
   }
 
   if (first === "file" && second === "comments" && third === "list") {
@@ -268,26 +286,102 @@ const remoteCall = async (
   services: CliServices,
   operation: string,
   payload: Readonly<Record<string, unknown>>,
-  options: { readonly method?: string; readonly fileKey?: string; readonly endpoint?: EndpointMetadata } = {}
+  options: {
+    readonly method?: string
+    readonly fileKey?: string
+    readonly endpoint?: EndpointMetadata
+    readonly ancestors?: boolean
+  } = {}
 ): Promise<DispatchResult> => {
   const endpoint = options.endpoint ?? services.endpointCatalog.describe(operation)
   if (endpoint === null) throw new WriteOperationBlocked({ message: `Operation is not a bundled GET endpoint: ${operation}`, operation })
   const { path, query } = resolveEndpoint(endpoint, payload)
   const profile = await getProfile(services, flagString(parsed, "profile", "default") ?? "default")
-  const result = await services.figmaRestApi.get({
-    token: profile.accessToken,
-    credentialKind: profile.credentialKind,
-    path,
-    ...(Object.keys(query).length === 0 ? {} : { query })
+  const read = (input: { readonly path: string; readonly query?: Readonly<Record<string, string>> }) =>
+    services.figmaRestApi.get({
+      token: profile.accessToken,
+      credentialKind: profile.credentialKind,
+      path: input.path,
+      ...(input.query === undefined ? {} : { query: input.query })
+    })
+  const result = await read({ path, ...(Object.keys(query).length === 0 ? {} : { query }) })
+  const anatomy = await resolveAnatomy(read, result.data, {
+    ...(options.fileKey === undefined ? {} : { fileKey: options.fileKey }),
+    ancestors: options.ancestors === true
   })
   return {
     method: options.method ?? operation,
     profile,
     ...(options.fileKey === undefined ? {} : { fileKey: options.fileKey }),
-    data: result.data,
+    data: anatomy.data,
     paging: pagingFrom(result.data),
-    warnings: rateWarnings(result.headers)
+    warnings: [...rateWarnings(result.headers), ...anatomy.warnings]
   }
+}
+
+type Read = (input: { readonly path: string; readonly query?: Readonly<Record<string, string>> }) => Promise<{ readonly data: unknown }>
+
+// Names a caller can write in code, from ids the payload already carries. Neither
+// extra read is worth failing the command over: a refused one leaves raw ids and
+// says so, because a read that answered is worth more than a read that gave up.
+const resolveAnatomy = async (
+  read: Read,
+  data: unknown,
+  context: { readonly fileKey?: string; readonly ancestors: boolean }
+): Promise<{ readonly data: unknown; readonly warnings: readonly string[] }> => {
+  const roots = requestedNodeIds(data)
+  if (context.fileKey === undefined || (collectVariableIds(data).length === 0 && (!context.ancestors || roots.length === 0))) {
+    return { data, warnings: [] }
+  }
+  const warnings: string[] = []
+  const variables = collectVariableIds(data).length === 0
+    ? {}
+    : await readVariables(read, context.fileKey, warnings)
+  const ancestors = context.ancestors && roots.length > 0
+    ? await readAncestors(read, context.fileKey, roots, warnings)
+    : {}
+  return { data: annotateAnatomy(data, { variables, ancestors }), warnings }
+}
+
+const readVariables = async (
+  read: Read,
+  fileKey: string,
+  warnings: string[]
+): Promise<Readonly<Record<string, string>>> => {
+  const path = `/v1/files/${encodeURIComponent(fileKey)}/variables/local`
+  try {
+    return variableNames((await read({ path })).data)
+  } catch (cause) {
+    warnings.push(`Variable names are unresolved: GET ${path} ${reasonFor(cause)}. Bound variables are reported as raw ids, which still show where one token is shared. That endpoint is Enterprise-only.`)
+    return {}
+  }
+}
+
+const readAncestors = async (
+  read: Read,
+  fileKey: string,
+  ids: readonly string[],
+  warnings: string[]
+): Promise<Readonly<Record<string, readonly Ancestor[]>>> => {
+  const path = `/v1/files/${encodeURIComponent(fileKey)}`
+  try {
+    const branch = (await read({ path, query: { ids: ids.join(",") } })).data
+    return Object.fromEntries(ids.map((id) => [id, ancestorChain(branch, id)]))
+  } catch (cause) {
+    warnings.push(`The ancestors of the requested node are unknown: GET ${path} ${reasonFor(cause)}. A FILL width is a measured number, so the frame that fixes it is not shown.`)
+    return {}
+  }
+}
+
+const reasonFor = (cause: unknown): string => {
+  const status = typeof cause === "object" && cause !== null && "status" in cause ? (cause as { status?: number }).status : undefined
+  return status === undefined ? "could not be read" : `answered ${status}`
+}
+
+const requestedNodeIds = (data: unknown): readonly string[] => {
+  if (typeof data !== "object" || data === null) return []
+  const nodes = (data as Record<string, unknown>)["nodes"]
+  return typeof nodes === "object" && nodes !== null ? Object.keys(nodes) : []
 }
 
 const resolveEndpoint = (endpoint: EndpointMetadata, payload: Readonly<Record<string, unknown>>): { path: string; query: Record<string, string> } => {
@@ -320,9 +414,10 @@ export const renderDispatchResult = (parsed: ParsedArgs, result: DispatchResult,
     ...(result.warnings === undefined ? {} : { warnings: result.warnings })
   })
   const format = flagString(parsed, "format")
-  if (format !== undefined && !["json", "ndjson", "table", "png", "jpg", "svg", "pdf"].includes(format)) {
-    throw new UsageError({ message: "--format must be json, ndjson, or table for output", argument: "format" })
+  if (format !== undefined && !["json", "ndjson", "table", "tree", "png", "jpg", "svg", "pdf"].includes(format)) {
+    throw new UsageError({ message: "--format must be json, ndjson, table, or tree for output", argument: "format" })
   }
+  if (format === "tree") return renderTree(data)
   if (flagBoolean(parsed, "raw")) return serializeJson(data, flagBoolean(parsed, "pretty"))
   if (format === "ndjson") return toNdjson(primaryItems(data))
   const json = format === "json" || (format !== "table" && (flagBoolean(parsed, "json") || options.stdoutIsTty !== true))

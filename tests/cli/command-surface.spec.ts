@@ -145,7 +145,7 @@ describe("CLI surface", () => {
         details: {
           argument: "ids",
           command: "file nodes get",
-          usage: "agent-figma file nodes get FILE_OR_URL --ids ID[,ID] [--profile NAME] [--json] [--fields a,b.c]"
+          usage: "agent-figma file nodes get FILE_OR_URL --ids ID[,ID] [--depth N] [--ancestors] [--profile NAME] [--json] [--format json|ndjson|table|tree] [--fields a,b.c]"
         },
         suggestion: "Run `agent-figma file nodes get --help` for what it needs."
       }

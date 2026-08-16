@@ -21,6 +21,7 @@ Getting started
 Usage
 
 - [Reading Figma context](./guides/reading-figma-context.md)
+- [Implementing a design](./guides/implementing-a-design.md)
 - [Agent workflows](./recipes/agent-workflows.md)
 
 Reference

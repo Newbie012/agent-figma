@@ -52,6 +52,18 @@ Releasing runs on pnpm 12's own tooling, on the `beta` lane, over OIDC trusted p
 left is the bootstrap in [`.agents/release.md`](../release.md): create the GitHub repository,
 publish `0.1.0-beta.0` by hand once, then configure the trusted publisher on npm so CI takes over.
 
+## ISSUE-009 - Compare a node against the code that implements it
+
+- **Status:** todo
+- **PRDs:** PRD-004 names it out of scope
+
+Point the CLI at a node plus the component file and stylesheet that implement it, and report
+mismatches: a label using the design system's text component where the value uses raw markup
+inheriting the body size, for instance, which today is only caught by screenshotting the result.
+
+Needs its own PRD first. It has to decide what a mismatch is, what it reads on the code side, and
+what it does with a difference that was deliberate.
+
 ## ISSUE-008 - Hosted authentication
 
 - **Status:** todo
