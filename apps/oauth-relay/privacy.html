@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Agent Figma privacy</title></head>
+  <body style="margin:0;background:#000;color:#fff;font:16px/1.6 ui-monospace,monospace"><main style="max-width:760px;margin:72px auto;padding:0 24px"><h1>Privacy</h1><p>The OAuth relay is stateless. Because Figma requires a client secret, it exchanges authorization codes and refresh tokens in memory, then immediately discards them. It stores no tokens or Figma content.</p><p>The authorization grant returned to the CLI is encrypted to an ephemeral key generated on the operator's machine. Responses use <code>Cache-Control: no-store</code>. The CLI requests read-only scopes and sends Figma data requests directly from the operator's machine.</p><p>See the <a style="color:#fff" href="https://github.com/Newbie012/agent-figma">project documentation</a> for the threat model and self-hosting instructions.</p></main></body>
+</html>

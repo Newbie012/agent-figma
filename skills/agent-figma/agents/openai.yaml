@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agent Figma"
+  short_description: "Read Figma REST context from the CLI"
+  default_prompt: "Use $agent-figma to retrieve the referenced Figma context as structured, read-only data."

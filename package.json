@@ -1,0 +1,75 @@
+{
+  "name": "@eliya-oss/agent-figma",
+  "version": "0.1.0",
+  "description": "Read Figma context from the command line for humans and AI agents.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Newbie012/agent-figma.git"
+  },
+  "homepage": "https://github.com/Newbie012/agent-figma#readme",
+  "bugs": "https://github.com/Newbie012/agent-figma/issues",
+  "type": "module",
+  "packageManager": "pnpm@12.0.0-rc.6",
+  "bin": {
+    "agent-figma": "dist/main.js",
+    "afg": "dist/main.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "skills",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    ".agents/cli-api.md"
+  ],
+  "scripts": {
+    "afg": "pnpm build && node dist/main.js",
+    "agent-figma": "pnpm build && node dist/main.js",
+    "build": "rolldown -c rolldown.config.mjs",
+    "check": "pnpm security:check && pnpm typecheck && pnpm oauth:types && pnpm docs:check && pnpm test:coverage && pnpm build && pnpm smoke && pnpm security:package",
+    "clean": "rm -rf dist coverage",
+    "dev": "pnpm build && node dist/main.js",
+    "docs:check": "node scripts/write-command-reference.mjs --check",
+    "docs:write": "node scripts/write-command-reference.mjs",
+    "oauth:types": "pnpm --filter agent-figma-oauth-relay typecheck",
+    "prepack": "pnpm build",
+    "release:check": "pnpm check && pnpm audit && pnpm peers check && npm pack --dry-run",
+    "release:publish": "pnpm build && pnpm publish --tag beta --no-git-checks",
+    "security:check": "node scripts/check-sensitive.mjs",
+    "security:package": "node scripts/check-sensitive.mjs --package",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "figma",
+    "cli",
+    "agents",
+    "effect",
+    "design-context"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "tag": "beta"
+  },
+  "dependencies": {
+    "@effect/platform-node": "4.0.0-beta.99",
+    "effect": "4.0.0-beta.99"
+  },
+  "devDependencies": {
+    "@effect/vitest": "4.0.0-beta.99",
+    "@figma/rest-api-spec": "0.41.0",
+    "@types/node": "latest",
+    "@vitest/coverage-v8": "^4.1.9",
+    "rolldown": "^1.1.4",
+    "typescript": "latest",
+    "vite": "7.3.6",
+    "vitest": "latest"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

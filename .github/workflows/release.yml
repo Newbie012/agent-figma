@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      # corepack cannot install pnpm 12 yet, so install it the way pnpm documents.
+      - run: npm install -g --allow-scripts=pnpm pnpm@12.0.0-rc.6
+
+      - run: pnpm install --frozen-lockfile
+
+      - id: plan
+        name: Is there anything to release
+        run: |
+          pnpm change status || true
+          NAME=$(node -p "require('./package.json').name")
+          if ! npm view "$NAME" version --json > /dev/null 2>&1; then
+            echo "::notice::$NAME is not on the registry yet. Trusted publishing cannot create a package, so the first version is published once by hand. See .agents/release.md. Holding; no version will be applied."
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if pnpm version -r --dry-run 2>&1 | grep -q '→'; then
+            echo "pending=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No pending change intents. Nothing to release."
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.plan.outputs.pending == 'true'
+        run: pnpm release:check
+
+      - if: steps.plan.outputs.pending == 'true'
+        id: version
+        name: Apply the pending intents
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          pnpm version -r
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+            echo "::error::$NAME@$VERSION is already on the registry, so main is behind it. Bring main up to the published version and its ledger entry before releasing again."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - if: steps.plan.outputs.pending == 'true'
+        name: Record the version on main
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git add -A -- .changeset package.json
+          if git diff --cached --quiet; then
+            echo "::error::pnpm version -r left the tree unchanged, so there is no release commit to record for $VERSION."
+            exit 1
+          fi
+          git commit -m "release $VERSION"
+          for ATTEMPT in 1 2 3 4 5; do
+            git tag -f -a "v$VERSION" -m "release $VERSION"
+            if git push --atomic origin HEAD:refs/heads/main "refs/tags/v$VERSION"; then
+              echo "::notice::main and tag v$VERSION carry $VERSION."
+              exit 0
+            fi
+            echo "::warning::Push attempt $ATTEMPT of 5 was turned down. Rebasing onto main and trying again."
+            git fetch origin main
+            if ! git rebase FETCH_HEAD; then
+              git rebase --abort || true
+              echo "::error::The release commit for $VERSION does not rebase onto main. Nothing was published, so rerun this workflow once main is settled."
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "::error::main moved under this run five times. Nothing was published, so rerun this workflow once main is settled."
+          exit 1
+
+      - if: steps.plan.outputs.pending == 'true'
+        name: Publish to the beta channel
+        run: pnpm release:publish
+
+      - if: steps.plan.outputs.pending == 'true'
+        name: Wait for the registry to serve it
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          for ATTEMPT in 1 2 3 4 5 6; do
+            if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
+              echo "::notice::$NAME@$VERSION is on the registry under the beta tag."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::$NAME@$VERSION was published but the registry has not served it yet."
+
+      - if: steps.plan.outputs.pending == 'true'
+        name: Draft the GitHub release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          NOTES=".changeset/changelogs/@eliya-oss!agent-figma@$VERSION.md"
+          if [ -f "$NOTES" ]; then
+            gh release create "v$VERSION" --prerelease --title "v$VERSION" --notes-file "$NOTES"
+          else
+            gh release create "v$VERSION" --prerelease --title "v$VERSION" --generate-notes
+          fi
