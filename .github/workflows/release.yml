@@ -36,8 +36,17 @@ jobs:
 
       - id: plan
         name: Is there anything to release
+        env:
+          RELEASE_ENABLED: ${{ vars.RELEASE_ENABLED }}
         run: |
           pnpm change status || true
+          # Publishing is OIDC, so it fails until npm knows this repository and
+          # this workflow file. The variable is the switch you flip once it does.
+          if [ "$RELEASE_ENABLED" != "true" ]; then
+            echo "::notice::Releasing is off. Configure the npm trusted publisher for Newbie012/agent-figma and release.yml, then set the RELEASE_ENABLED repository variable to true. See .agents/release.md."
+            echo "pending=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           NAME=$(node -p "require('./package.json').name")
           if ! npm view "$NAME" version --json > /dev/null 2>&1; then
             echo "::notice::$NAME is not on the registry yet. Trusted publishing cannot create a package, so the first version is published once by hand. See .agents/release.md. Holding; no version will be applied."

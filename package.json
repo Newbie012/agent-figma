@@ -35,7 +35,7 @@
     "oauth:types": "pnpm --filter agent-figma-oauth-relay typecheck",
     "prepack": "pnpm build",
     "release:check": "pnpm check && pnpm audit && pnpm peers check && npm pack --dry-run",
-    "release:publish": "pnpm build && pnpm publish --tag alpha --no-git-checks",
+    "release:publish": "pnpm build && pnpm publish --tag alpha --provenance --no-git-checks",
     "security:check": "node scripts/check-sensitive.mjs",
     "security:package": "node scripts/check-sensitive.mjs --package",
     "smoke": "node scripts/smoke.mjs",

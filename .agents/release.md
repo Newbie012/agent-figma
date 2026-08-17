@@ -28,8 +28,10 @@ Merging to `main` runs `.github/workflows/release.yml`, which:
 1. holds if the package is not on the registry yet, or if no intent is pending,
 2. runs `pnpm release:check`,
 3. applies the intents with `pnpm version -r`, commits `release <version>` and tags `v<version>`,
-4. publishes with `pnpm publish --tag alpha` over OIDC trusted publishing,
+4. publishes with `pnpm publish --tag alpha --provenance` over OIDC trusted publishing,
 5. drafts a prerelease on GitHub from the generated changelog.
+
+The repository is public, so npm attaches a provenance attestation to each release.
 
 No npm token exists anywhere. The workflow requests an OIDC identity with `id-token: write`, and
 npm verifies the repository and the workflow filename against the trusted publisher configured on
@@ -51,8 +53,15 @@ pnpm build && pnpm publish --tag alpha --no-git-checks
 ```
 
 Then configure the trusted publisher on npmjs.com for `@eliya-oss/agent-figma`
-(repository `Newbie012/agent-figma`, workflow `release.yml`), and every release after this one is
-credential-free.
+(repository `Newbie012/agent-figma`, workflow `release.yml`), and turn CI releasing on:
+
+```bash
+gh variable set RELEASE_ENABLED --body true
+```
+
+Until that variable is `true` the release job holds with a notice, because an OIDC publish fails
+until npm knows the repository and the workflow file, and a run that versions and tags without
+publishing leaves `main` ahead of the registry. Every release after this one is credential-free.
 
 Check the tags afterwards:
 

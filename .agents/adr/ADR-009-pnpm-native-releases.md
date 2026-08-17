@@ -33,6 +33,12 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
   merge, not after.
 - No publish credential exists. There is no token to leak, rotate, or scope, and trusted publishing
   binds to the workflow filename, so renaming `release.yml` breaks publishing until npm is updated.
+- The repository is public, so releases publish with `--provenance` and each version carries an
+  attestation tying it to this repository and workflow.
+- Releasing is gated on a `RELEASE_ENABLED` repository variable. An OIDC publish fails until npm has
+  a trusted publisher for the repository and workflow, and a run that versions and tags without
+  publishing leaves `main` ahead of the registry — which the next run then refuses. The gate holds
+  before any of that happens, with a notice saying what to configure.
 - **The first version cannot be published by CI.** Trusted-publisher settings live on a package that
   does not exist yet ([npm/cli#8544](https://github.com/npm/cli/issues/8544)), so the first release
   is published once by hand and the workflow holds with a notice until the package exists.
@@ -63,6 +69,6 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
 - pnpm 12 goes stable and the pin can leave the release candidate.
 - npm allows configuring a trusted publisher before a package exists, which retires the bootstrap
   and the registry check that guards it.
-- The repository goes public, at which point npm generates provenance and `--provenance` should be
-  verified rather than assumed.
+- The first CI release runs, at which point the provenance attestation should be verified on the
+  published version rather than assumed from the flag.
 - The surface settles enough to leave `alpha`, which is `pnpm lane main` plus the bump-type re-check.
