@@ -1,0 +1,11 @@
+"@eliya-oss/agent-figma@0.1.0-alpha.0":
+  dir: ""
+  intents:
+    - a-readme-for-how-it-is-used
+    - a-tree-you-can-read
+    - a-width-that-was-measured
+    - documentation-that-ships
+    - help-that-answers-a-person
+    - read-a-mistyped-line
+    - tokens-instead-of-numbers
+    - what-the-design-asked-for
