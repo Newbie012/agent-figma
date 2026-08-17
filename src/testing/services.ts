@@ -6,6 +6,7 @@ import { ProfileName } from "../domain/ids.js"
 import type { FigmaRestApi } from "../ports/FigmaRestApi.js"
 import type { TokenStore } from "../ports/TokenStore.js"
 import type { OAuthFlow, OAuthLoginRequest, OAuthRefreshRequest, OAuthRefreshResult } from "../ports/OAuthFlow.js"
+import type { Installer, InstallerRun } from "../ports/Installer.js"
 import type { SourceCode, SourceCodeRead } from "../ports/SourceCode.js"
 import type { DriverState } from "./state.js"
 
@@ -70,6 +71,19 @@ class FakeSourceCode implements SourceCode {
   }
 }
 
+class FakeInstaller implements Installer {
+  constructor(private readonly state: DriverState) {}
+
+  async run(argv: readonly string[]): Promise<InstallerRun> {
+    this.state.installerRuns.push(argv)
+    return { ok: this.state.installerOk, output: "" }
+  }
+
+  async latest(): Promise<string | undefined> {
+    return this.state.latestVersion
+  }
+}
+
 class FakeOAuthFlow implements OAuthFlow {
   constructor(private readonly state: DriverState) {}
 
@@ -96,5 +110,6 @@ export const createTestServices = (state: DriverState): CliServices => ({
   figmaRestApi: new FakeFigmaRestApi(state),
   endpointCatalog: new BundledEndpointCatalog(),
   oauthFlow: new FakeOAuthFlow(state),
-  sourceCode: new FakeSourceCode(state)
+  sourceCode: new FakeSourceCode(state),
+  installer: new FakeInstaller(state)
 })

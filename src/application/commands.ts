@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url"
 import { flagBoolean, flagString, requireFlag, requirePositional } from "../cli/args.js"
 import {
   CLI_VERSION,
@@ -21,6 +22,16 @@ import {
   type Ancestor
 } from "../domain/anatomy.js"
 import { compare } from "../domain/compare.js"
+import {
+  asRoute,
+  findingFor,
+  planFor,
+  routeOf,
+  sayChecked,
+  sayDone,
+  TAG,
+  willUpgrade
+} from "../domain/upgrade.js"
 import { UsageError, WriteOperationBlocked } from "../domain/errors.js"
 import { normalizeNodeId, parseFigmaReference, type AuthProfile, type Paging } from "../domain/figma.js"
 import { ProfileName, Scope } from "../domain/ids.js"
@@ -34,6 +45,7 @@ import type { CliServices } from "./services.js"
 
 export interface DispatchResult {
   readonly method: string
+  readonly failed?: boolean
   readonly profile: AuthProfile | null
   readonly fileKey?: string
   readonly data: unknown
@@ -70,6 +82,8 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
     if (completion === "") throw new UsageError({ message: "Unsupported completion shell", argument: "SHELL" })
     return rawResult("completion", completion)
   }
+
+  if (first === "upgrade") return upgrade(parsed, services, options)
 
   if (first === "api") return apiCommand(parsed, services)
   if (first === "auth") return authCommand(parsed, services)
@@ -165,6 +179,27 @@ const compareNode = async (parsed: ParsedArgs, services: CliServices): Promise<D
       ...source.skipped.map((skipped) => `Not compared against ${skipped}.`),
       ...(source.files.length === 0 ? ["No file was read, so every expectation is reported as missing."] : [])
     ]
+  }
+}
+
+// `upgrade` is an imperative: someone who typed it has decided. So it runs the
+// install for the route this copy came from, and --check is how to ask instead.
+const upgrade = async (parsed: ParsedArgs, services: CliServices, options: CliExecutionOptions): Promise<DispatchResult> => {
+  const check = flagBoolean(parsed, "check")
+  const modulePath = fileURLToPath(import.meta.url)
+  const route = asRoute(options.env?.["AGENT_FIGMA_UPGRADE_ROUTE"]) ?? routeOf(modulePath)
+  const plan = planFor(route, modulePath)
+  const finding = findingFor(plan, CLI_VERSION, await services.installer.latest(TAG))
+  const running = willUpgrade(finding, check)
+  const ran = running ? (await services.installer.run(plan.argv)).ok : false
+  const report = { ...finding, ran, checked: check }
+  if (flagBoolean(parsed, "json")) return localResult("upgrade", report)
+  return {
+    method: "upgrade",
+    profile: null,
+    data: report,
+    rawStdout: `${check ? sayChecked(finding) : sayDone(finding, ran)}\n`,
+    ...(check || ran || finding.upToDate === true ? {} : { failed: true })
   }
 }
 

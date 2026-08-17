@@ -7,6 +7,8 @@ components, and styles. Built so your AI agents can read Figma too. Short alias:
 
 <pre align="center">npm install -g @eliya-oss/agent-figma@alpha</pre>
 
+<p align="center"><a href="docs/installation.md">Other ways to install</a></p>
+
 </div>
 
 ## Usage
@@ -42,6 +44,7 @@ The CLI reads its own surface back to you, so there is nothing to memorise:
 agent-figma --help                # every command, grouped by what it is for
 agent-figma node get --help       # one command: usage, flags, endpoint, scopes
 agent-figma node get URL --format tree
+agent-figma upgrade               # upgrades, using whatever installed it
 ```
 
 `--format tree` and `node compare` are the two outputs made for a person rather than a parser: a

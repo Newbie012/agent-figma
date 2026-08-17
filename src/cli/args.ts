@@ -3,6 +3,7 @@ import type { ParsedArgs } from "./types.js"
 
 const booleanFlags = new Set([
   "ancestors",
+  "check",
   "help",
   "json",
   "no-ancestors",

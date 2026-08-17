@@ -31,7 +31,7 @@ describe("docs folder", () => {
 
     expect(Object.keys(manifest.scripts).filter((name) => name.startsWith("docs:"))).toEqual(["docs:check", "docs:write"])
     expect(manifest.scripts["release:check"]).not.toContain("docs:build")
-    expect(manifest.files).toContain("docs")
+    expect(manifest.files).toContain("./docs")
     expect(workspace).not.toContain('- "docs"')
     expect(index).toContain("[Commands](./reference/commands.md)")
   })

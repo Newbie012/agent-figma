@@ -20,6 +20,7 @@ Goal: expose bounded, deterministic, read-only Figma context to terminals and AI
 - A refusal names the way out: the nearest command when one is mistyped, a noun's verbs when the verb is missing, and the flag it was one keystroke from.
 - `api endpoints list`, `api endpoint describe`, and `api call` provide one discovery and execution flow.
 - `node compare` reads local files the caller names, to report which of the design's tokens and sizes the code never mentions. It is a text scan, so it proves mention rather than use, and it says so. Nothing read from disk leaves the process.
+- `upgrade` runs the install command for the route this copy came from, and `--check` asks instead. An upgrade that was asked for and did not happen exits `1`; `--json` keeps the envelope and exits `0`.
 - No command mutates remote Figma state.
 
 ## Commands
@@ -27,6 +28,7 @@ Goal: expose bounded, deterministic, read-only Figma context to terminals and AI
 ```bash
 agent-figma describe --json
 agent-figma completion bash|zsh
+agent-figma upgrade [--check] [--json]
 agent-figma auth login [--profile NAME] [--scopes LIST] [--no-open] [--auth-url-out PATH]
 agent-figma auth login --token TOKEN [--profile NAME]
 agent-figma auth login --oauth --client-id ID --client-secret SECRET --redirect-uri URI [--profile NAME]
@@ -79,6 +81,8 @@ AGENT_FIGMA_OAUTH_AUTHORIZE_URL OAuth authorization override
 AGENT_FIGMA_OAUTH_TOKEN_URL OAuth token exchange override
 AGENT_FIGMA_OAUTH_LOCAL_CALLBACK_URI Local callback override
 AGENT_FIGMA_OAUTH_TIMEOUT_MS Browser callback timeout override
+AGENT_FIGMA_UPGRADE_ROUTE  The install `upgrade` should believe it has: npm, bun, source
+AGENT_FIGMA_REGISTRY       dist-tags endpoint `upgrade` asks for the newest alpha
 ```
 
 On macOS, profile tokens are stored in Keychain. Other platforms use a mode-`0600` profile file until native secret-store adapters exist.

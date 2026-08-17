@@ -60,6 +60,29 @@ agent-figma completion zsh > ~/.zfunc/_agent-figma
 
 Answers shell completion script.
 
+### `agent-figma upgrade`
+
+Upgrade this install to the newest alpha, using whatever installed it.
+
+```bash
+agent-figma upgrade [--check] [--json]
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--check` | Report what would happen and run nothing. Always exits 0. |
+| `--json` | Answer with the JSON envelope, whatever stdout is attached to. |
+
+```bash
+agent-figma upgrade
+```
+
+```bash
+agent-figma upgrade --check --json
+```
+
+Answers what was installed, or the command that would do it.
+
 ## Authentication
 
 ### `agent-figma auth status`

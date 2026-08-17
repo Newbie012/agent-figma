@@ -2,6 +2,7 @@ import type { EndpointCatalog } from "../ports/EndpointCatalog.js"
 import type { FigmaRestApi } from "../ports/FigmaRestApi.js"
 import type { TokenStore } from "../ports/TokenStore.js"
 import type { OAuthFlow } from "../ports/OAuthFlow.js"
+import type { Installer } from "../ports/Installer.js"
 import type { SourceCode } from "../ports/SourceCode.js"
 
 export interface CliServices {
@@ -10,4 +11,5 @@ export interface CliServices {
   readonly endpointCatalog: EndpointCatalog
   readonly oauthFlow: OAuthFlow
   readonly sourceCode: SourceCode
+  readonly installer: Installer
 }

@@ -5,6 +5,7 @@ import { KeychainTokenStore } from "./keychain/KeychainTokenStore.js"
 import { FileTokenStore } from "./profile-file/FileTokenStore.js"
 import { selectTokenStoreKind } from "./token-store-kind.js"
 import { NodeLocalhostOAuthFlow } from "./localhost-oauth/NodeLocalhostOAuthFlow.js"
+import { NodeInstaller } from "./installer/NodeInstaller.js"
 import { FileSourceCode } from "./source-fs/FileSourceCode.js"
 
 export const createLiveServices = (env: NodeJS.ProcessEnv = process.env): CliServices => ({
@@ -16,5 +17,6 @@ export const createLiveServices = (env: NodeJS.ProcessEnv = process.env): CliSer
   ),
   endpointCatalog: new BundledEndpointCatalog(),
   oauthFlow: NodeLocalhostOAuthFlow.fromEnv(env),
-  sourceCode: new FileSourceCode()
+  sourceCode: new FileSourceCode(),
+  installer: NodeInstaller.fromEnv(env)
 })

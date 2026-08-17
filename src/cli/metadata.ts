@@ -18,6 +18,7 @@ export const REST_ACCESS = "REST access"
 export const flagCatalog: Readonly<Record<string, FlagMetadata>> = {
   "--ancestors": { summary: "Also read the frames above the node, so a FILL size shows what fixes it." },
   "--auth-url-out": { value: "PATH", summary: "Write the authorization URL to a file for a headless handoff." },
+  "--check": { summary: "Report what would happen and run nothing. Always exits 0." },
   "--client-id": { value: "ID", summary: "Figma app client id, for self-hosted OAuth." },
   "--code": { value: "PATH[,PATH]", summary: "Files or directories that implement the node. Read locally, never uploaded." },
   "--client-secret": { value: "SECRET", summary: "Figma app client secret. Used for this process and never stored." },
@@ -80,6 +81,7 @@ export const commandMetadata: readonly CommandMetadata[] = [
   command(["component", "get"], "Show a published component.", FIGMA_READS, { args: ["COMPONENT_KEY"], flags: ["--profile", "--json", "--fields"], endpoints: ["GET /v1/components/:key"], scopes: ["library_assets:read"], output: "component metadata", examples: ["agent-figma component get KEY --json"] }),
   command(["component-set", "get"], "Show a published component set.", FIGMA_READS, { args: ["COMPONENT_SET_KEY"], flags: ["--profile", "--json", "--fields"], endpoints: ["GET /v1/component_sets/:key"], scopes: ["library_assets:read"], output: "component set metadata", examples: ["agent-figma component-set get KEY --json"] }),
   command(["style", "get"], "Show a published style.", FIGMA_READS, { args: ["STYLE_KEY"], flags: ["--profile", "--json", "--fields"], endpoints: ["GET /v1/styles/:key"], scopes: ["library_assets:read"], output: "style metadata", examples: ["agent-figma style get KEY --json"] }),
+  command(["upgrade"], "Upgrade this install to the newest alpha, using whatever installed it.", DISCOVERY, { flags: ["--check", "--json"], output: "what was installed, or the command that would do it", examples: ["agent-figma upgrade", "agent-figma upgrade --check --json"] }),
   command(["api", "call"], "Call a bundled Figma GET operation with a JSON payload.", REST_ACCESS, { args: ["OPERATION"], flags: ["--payload", "--profile", "--raw", "--format", "--fields", "--json"], output: "Figma REST response", examples: ["agent-figma api call file.get --payload '{\"key\":\"abc\",\"depth\":2}' --json"] }),
   command(["api", "endpoints", "list"], "List bundled Figma REST endpoint metadata.", REST_ACCESS, { flags: ["--family", "--json", "--format"], output: "endpoint metadata list", examples: ["agent-figma api endpoints list --family file --json"] }),
   command(["api", "endpoint", "describe"], "Describe one bundled Figma REST operation.", REST_ACCESS, { args: ["OPERATION"], flags: ["--json"], output: "endpoint metadata", examples: ["agent-figma api endpoint describe file.get --json"] })

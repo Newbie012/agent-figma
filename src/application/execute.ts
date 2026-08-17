@@ -15,7 +15,9 @@ export const executeCli = async (
     parsed = parseArgs(argv)
     const result = await dispatch(parsed, services, options)
     return {
-      exitCode: 0,
+      // An upgrade that was asked for and did not happen leaves the caller on the
+      // version they started on, and `agent-figma upgrade && …` should see that.
+      exitCode: result.failed === true ? 1 : 0,
       stdout: renderDispatchResult(parsed, result, options),
       stderr: ""
     }

@@ -40,6 +40,12 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
   unpublished package always says `alpha.0`. Verified, not assumed.
 - A lane produces the next prerelease of the *current* version and ignores the intent's bump type.
   Harmless while everything is a patch on the way to `0.1.0`; re-check before leaving alpha.
+- npm sets `latest` on a package's first publish whatever `--tag` says, so `0.1.0-alpha.0` is both
+  `alpha` and `latest`. The lane governs every release after it. Observed on the first release.
+- `package.json` `files` entries are patterns, not paths: bare `docs` and `README.md` matched
+  `tests/docs` and every nested README, and `0.1.0-alpha.0` shipped six files it should not have.
+  Entries are anchored with `./` now, and `pnpm security:package` fails on anything outside the
+  allowlist rather than trusting the field.
 
 ## Alternatives considered
 

@@ -54,11 +54,17 @@ Then configure the trusted publisher on npmjs.com for `@eliya-oss/agent-figma`
 (repository `Newbie012/agent-figma`, workflow `release.yml`), and every release after this one is
 credential-free.
 
-Check afterwards that `latest` was not moved:
+Check the tags afterwards:
 
 ```bash
 npm view @eliya-oss/agent-figma dist-tags
 ```
+
+**npm points `latest` at the first publish whatever `--tag` says.** A package needs a `latest`, and
+on `0.1.0-alpha.0` there was nothing else for it to point at, so `alpha` and `latest` are the same
+build. Every release after this one publishes to `alpha` only and leaves `latest` where it is, and a
+stable release moves it. Removing the tag by hand is possible (`npm dist-tag rm … latest`, with an
+OTP) but it makes `npm install` without a tag fail rather than resolve, so it is left in place.
 
 ## How the version is chosen
 

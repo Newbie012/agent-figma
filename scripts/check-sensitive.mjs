@@ -49,6 +49,26 @@ for (const file of files) {
   }
 }
 
+// A bare name in package.json `files` matches at any depth, which is how
+// tests/docs and five nested README files reached 0.1.0-alpha.0. The allowlist
+// below is what the package is meant to contain; anything else is a leak.
+const shippable = [
+  /^package\.json$/,
+  /^(?:README|CHANGELOG|LICENSE)(?:\.md)?$/,
+  /^dist\/[^/]+\.js$/,
+  /^docs\//,
+  /^skills\//,
+  /^\.agents\/cli-api\.md$/
+]
+
+if (packageMode) {
+  for (const file of files) {
+    if (!shippable.some((pattern) => pattern.test(file))) {
+      findings.push(`${file}: not something this package ships`)
+    }
+  }
+}
+
 if (findings.length > 0) {
   process.stderr.write(`Sensitive-data check failed:\n${[...new Set(findings)].map((finding) => `- ${finding}`).join("\n")}\n`)
   process.exitCode = 1
