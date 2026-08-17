@@ -9,50 +9,51 @@ components, and styles. Built so your AI agents can read Figma too. Short alias:
 
 </div>
 
-## Usage, for humans
+## Usage
+
+You run two commands, once:
 
 ```bash
 agent-figma auth login --token "$FIGMA_TOKEN"
-agent-figma node get FIGMA_NODE_URL --format tree
-agent-figma node compare FIGMA_NODE_URL --code src/components/Panel.tsx,src/styles
-agent-figma file comments list FIGMA_URL --format table
+npx skills add Newbie012/agent-figma --skill agent-figma
 ```
 
-`--format tree` reads a frame one line per node, with the token behind each number and whether a size
-was chosen or measured. `node compare` says which of those the code never mentions.
+Then you ask your agent, and it runs the rest:
 
-## Usage, for agents
+> Build the spend panel from this Figma link: `https://www.figma.com/design/…?node-id=67307-140172`
 
 ```bash
 agent-figma describe --json
 agent-figma node get FIGMA_NODE_URL --json
-agent-figma file nodes get FIGMA_URL --ids 1:2,3:4 --fields nodes --json
+agent-figma node compare FIGMA_NODE_URL --code src/components/Panel.tsx --json
 agent-figma file comments list FIGMA_URL --format ndjson
 ```
 
 `describe` is the whole command catalog, so nothing has to be learned from prose. Every command
 answers one compact JSON line on stdout; failures go to stderr as `{"ok":false,"error":{…}}` with a
-type, a suggestion, and an exit code. Non-TTY stdout defaults to JSON.
+type, a suggestion, and an exit code. Non-TTY stdout defaults to JSON, so a piped command needs no
+flag.
 
-## Auth
+## Looking around yourself
 
-```bash
-agent-figma auth login --token "$FIGMA_TOKEN"
-```
-
-Stores a local profile in the macOS Keychain, or a mode-`0600` file elsewhere. Browser OAuth needs a
-relay you deploy yourself: [Authentication](./docs/authentication.md).
-
-## Skill
+The CLI reads its own surface back to you, so there is nothing to memorise:
 
 ```bash
-npx skills add Newbie012/agent-figma --skill agent-figma
+agent-figma --help                # every command, grouped by what it is for
+agent-figma node get --help       # one command: usage, flags, endpoint, scopes
+agent-figma node get URL --format tree
 ```
+
+`--format tree` and `node compare` are the two outputs made for a person rather than a parser: a
+frame as one line per node, and what the design asks for that your code never mentions.
 
 ## Notes
 
 Every command is read-only: only GET requests, and `api call` resolves through a bundled GET-only
 catalog. It returns only what the active token, its scopes, sharing, plan and seat allow.
+
+Browser OAuth is supported and needs a relay you deploy yourself:
+[Authentication](./docs/authentication.md).
 
 An alpha, published under the `alpha` tag. Docs are in [`docs/`](./docs/README.md), project contracts
 in `.agents/`.
