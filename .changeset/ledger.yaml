@@ -19,3 +19,7 @@
   dir: ""
   intents:
     - check-what-actually-ships
+"@eliya-oss/agent-figma@0.1.0-alpha.3":
+  dir: ""
+  intents:
+    - latest-follows-the-channel
