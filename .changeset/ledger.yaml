@@ -23,3 +23,7 @@
   dir: ""
   intents:
     - latest-follows-the-channel
+"@eliya-oss/agent-figma@0.1.0-alpha.4":
+  dir: ""
+  intents:
+    - one-tag-that-the-publish-sets
