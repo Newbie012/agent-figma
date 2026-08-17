@@ -27,3 +27,7 @@
   dir: ""
   intents:
     - one-tag-that-the-publish-sets
+"@eliya-oss/agent-figma@0.1.0-alpha.5":
+  dir: ""
+  intents:
+    - help-you-can-scan
