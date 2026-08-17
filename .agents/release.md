@@ -29,6 +29,7 @@ Merging to `main` runs `.github/workflows/release.yml`, which:
 2. runs `pnpm release:check`,
 3. applies the intents with `pnpm version -r`, commits `release <version>` and tags `v<version>`,
 4. publishes with `pnpm publish --tag alpha --provenance` over OIDC trusted publishing,
+   and moves `latest` to the same version,
 5. drafts a prerelease on GitHub from the generated changelog.
 
 The repository is public, so npm attaches a provenance attestation to each release.
@@ -69,11 +70,12 @@ Check the tags afterwards:
 npm view @eliya-oss/agent-figma dist-tags
 ```
 
-**npm points `latest` at the first publish whatever `--tag` says.** A package needs a `latest`, and
-on `0.1.0-alpha.0` there was nothing else for it to point at, so `alpha` and `latest` are the same
-build. Every release after this one publishes to `alpha` only and leaves `latest` where it is, and a
-stable release moves it. Removing the tag by hand is possible (`npm dist-tag rm … latest`, with an
-OTP) but it makes `npm install` without a tag fail rather than resolve, so it is left in place.
+**`latest` follows the channel.** npm points `latest` at a package's first publish whatever `--tag`
+says, and never moves it again for a prerelease — so it froze on `0.1.0-alpha.0` while `alpha` moved
+on, and a bare `npm install` served the oldest build ever published. Every version here is a
+prerelease, so there is no stable release for `latest` to protect: the release job moves it forward
+with each publish. When a stable version ships, `pnpm lane main` takes over and that step should be
+the first thing reconsidered.
 
 ## How the version is chosen
 

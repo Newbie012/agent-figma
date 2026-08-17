@@ -112,6 +112,23 @@ jobs:
         run: pnpm release:publish
 
       - if: steps.plan.outputs.pending == 'true'
+        name: Point latest at it too
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Every version is a prerelease, so there is no stable release for
+          # `latest` to protect: leaving it behind only means a bare
+          # `npm install` serves the oldest alpha ever published. It moves with
+          # the channel until a stable release takes it over.
+          NAME=$(node -p "require('./package.json').name")
+          if npm dist-tag add "$NAME@$VERSION" latest; then
+            echo "::notice::latest points at $VERSION."
+          else
+            echo "::error::Could not move latest to $VERSION. The publish succeeded, so latest is still on an older build; move it by hand with: npm dist-tag add $NAME@$VERSION latest"
+            exit 1
+          fi
+
+      - if: steps.plan.outputs.pending == 'true'
         name: Wait for the registry to serve it
         env:
           VERSION: ${{ steps.version.outputs.version }}

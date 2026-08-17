@@ -13,10 +13,9 @@ Every way to install agent-figma, and how to keep it current.
 npm install -g @eliya-oss/agent-figma@alpha
 ```
 
-Every release goes out under the `alpha` tag while the surface settles. Naming the tag is the honest
-way to install a prerelease, though `latest` also points at `0.1.0-alpha.0` today: npm sets `latest`
-on a package's first publish whatever tag it was published under, and there is nothing else for it to
-point at yet.
+Every release goes out under the `alpha` tag while the surface settles, and `latest` is moved to the
+same build, so the bare install above gets the newest alpha too. Naming the tag says out loud that
+this is a prerelease; both resolve to the same version until a stable release exists.
 
 ## bun
 
