@@ -8,6 +8,16 @@ This repo is built in this order:
 2. DDD: model the domain and architecture in `.agents/architecture.md`.
 3. TDD: write public-interface tests using `.agents/testing.md`.
 
+## Setup
+
+pnpm 12 is a Rust rewrite still on a release candidate, so corepack cannot install it:
+
+```bash
+npm install -g --allow-scripts=pnpm pnpm@12.0.0-rc.6
+pnpm install
+pnpm check          # security scan, types, docs, tests with coverage, build, smoke
+```
+
 ## Dev workflow
 
 1. Update the owning PRD before changing behavior. Record durable technical choices in `.agents/adr/`, and update `.agents/cli-api.md` when the command contract changes.
