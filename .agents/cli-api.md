@@ -16,6 +16,7 @@ Goal: expose bounded, deterministic, read-only Figma context to terminals and AI
 - Data goes to stdout. Errors go to stderr as stable envelopes.
 - `describe --json` is the machine-readable command catalog. Running the binary with no arguments prints a short banner to a terminal, and answers the same catalog everywhere else.
 - `--help` and `-h` work at every level, in any position: on a command they print its usage line, its flags and which are required, and on a noun they list its verbs. `--version` and `-v` print the version.
+- Human output is coloured for a terminal and plain everywhere else: group headings yellow, commands and flags cyan, metadata dim. `--no-color`, a `NO_COLOR` environment variable, and a piped stdout each turn it off.
 - A flag the command does not declare is refused. Reading past a mistyped flag turns a typo into a silently different answer, which is the one failure a caller cannot see.
 - A refusal names the way out: the nearest command when one is mistyped, a noun's verbs when the verb is missing, and the flag it was one keystroke from.
 - `api endpoints list`, `api endpoint describe`, and `api call` provide one discovery and execution flow.

@@ -52,10 +52,11 @@ describe("CLI surface", () => {
   it("keeps top-level help and completion conventions stable", async () => {
     await using driver = await FigmaCliTestDriver.create()
 
-    const help = await driver.cli.run({ args: ["--help"], terminal: { stdoutIsTty: true } })
+    const help = await driver.cli.run({ args: ["--help", "--no-color"], terminal: { stdoutIsTty: true } })
     const completion = await driver.cli.run({ args: ["completion", "zsh"], terminal: { stdoutIsTty: true } })
 
-    expect(help.stdout).toMatch(/^agent-figma\n\nRead Figma context from the command line\. Every command is read-only\.\n/)
+    expect(help.stdout).toMatch(/^agent-figma \d+\.\d+\.\d+/)
+    expect(help.stdout).toContain("Read Figma context from the command line. Every command is read-only.")
     expect(help.stdout).toContain("Usage\n  agent-figma COMMAND [flags]")
     expect(help.stdout).toContain("Figma reads")
     expect(help.stdout).toContain("  api call")
@@ -77,12 +78,26 @@ describe("CLI surface", () => {
   it("names each flag a command takes on its own help page", async () => {
     await using driver = await FigmaCliTestDriver.create()
 
-    const help = await driver.cli.run({ args: ["file", "get", "-h"], terminal: { stdoutIsTty: true } })
+    const help = await driver.cli.run({ args: ["file", "get", "-h", "--no-color"], terminal: { stdoutIsTty: true } })
 
     expect(help.stdout).toContain("Usage\n  agent-figma file get FILE_OR_URL [--profile NAME] [--depth N]")
     expect(help.stdout).toContain("--depth N")
     expect(help.stdout).toContain("Bound how deep the document tree is read.")
     expect(help.stdout).toContain("Reads\n  GET /v1/files/:key")
+  })
+
+  it("colours help for a person, and leaves it plain when asked", async () => {
+    await using driver = await FigmaCliTestDriver.create()
+
+    const painted = await driver.cli.run({ args: ["--help"], terminal: { stdoutIsTty: true } })
+    const asked = await driver.cli.run({ args: ["--help", "--no-color"], terminal: { stdoutIsTty: true } })
+    const declined = await driver.cli.run({ args: ["--help"], terminal: { stdoutIsTty: true, env: { NO_COLOR: "1" } } })
+    const piped = await driver.cli.run({ args: ["--help"] })
+
+    expect(painted.stdout).toContain("\u001b[33mFigma reads\u001b[39m")
+    expect(asked.stdout).not.toContain("\u001b[")
+    expect(declined.stdout).not.toContain("\u001b[")
+    expect(piped.stdout).not.toContain("\u001b[")
   })
 
   it("prints the version for -v", async () => {

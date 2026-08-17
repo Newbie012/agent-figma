@@ -19,6 +19,10 @@ Stable JSON envelopes, NDJSON streams, terminal rendering, errors, and exit code
 
 Machine output is compact by default. Add `--pretty` when you want indented JSON.
 
+Terminal output is coloured for a person: group headings yellow, commands and flags cyan, metadata
+dim. `--no-color`, `NO_COLOR=1`, and a piped stdout each turn it off, so nothing that is parsed ever
+carries an escape sequence.
+
 ## NDJSON
 
 `--format ndjson` writes one item per line from the response's primary collection:

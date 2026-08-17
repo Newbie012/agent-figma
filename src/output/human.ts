@@ -1,13 +1,10 @@
 import type { ErrorEnvelope, SuccessEnvelope } from "../domain/figma.js"
+import { painter, type PaintName } from "./paint.js"
 
 export interface HumanRenderOptions {
   readonly color: boolean
 }
 
-type PaintName = "bold" | "cyan" | "dim" | "green" | "red" | "yellow"
-const codes: Record<PaintName, readonly [number, number]> = {
-  bold: [1, 22], cyan: [36, 39], dim: [2, 22], green: [32, 39], red: [31, 39], yellow: [33, 39]
-}
 
 export const renderHumanEnvelope = (envelope: SuccessEnvelope, options: HumanRenderOptions = { color: false }): string => {
   const paint = painter(options.color)
@@ -150,4 +147,3 @@ const labelFor = (key: string): string => key.replace(/([a-z0-9])([A-Z])/g, "$1 
 const indent = (value: string): string => value.split("\n").map((line) => `  ${line}`).join("\n")
 const pad = (value: string, width: number): string => value + " ".repeat(Math.max(0, width - value.length))
 const truncate = (value: string, width: number): string => value.length > width ? `${value.slice(0, width - 3)}...` : value
-const painter = (color: boolean) => (name: PaintName, value: string): string => color ? `\u001b[${codes[name][0]}m${value}\u001b[${codes[name][1]}m` : value

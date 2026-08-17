@@ -157,93 +157,11 @@ export const usageOf = (found: CommandMetadata): string =>
 export const isRequired = (found: CommandMetadata, flag: string): boolean =>
   (found.required ?? []).includes(flag)
 
-export const renderBanner = (): string => [
-  `${PRIMARY_COMMAND_NAME} ${CLI_VERSION}`,
-  "",
-  "Read Figma context from the command line. Every command is read-only.",
-  "",
-  "Connect an account, then read a file:",
-  "",
-  "  agent-figma auth login --token \"$FIGMA_TOKEN\"",
-  "  agent-figma file get FIGMA_URL --depth 2 --json",
-  "  agent-figma node get FIGMA_NODE_URL --json",
-  "",
-  `Run \`${PRIMARY_COMMAND_NAME} --help\` for every command, \`${PRIMARY_COMMAND_NAME} COMMAND --help\` for one,`,
-  `or \`${PRIMARY_COMMAND_NAME} describe --json\` for the same catalog as JSON.`,
-  ""
-].join("\n")
-
-export const renderHumanHelp = (path: readonly string[] = []): string => {
-  const found = findCommandMetadata(path)
-  if (found !== null) return renderCommandHelp(found)
-  const visible = commandsUnder(path)
-  if (visible.length === 0) return renderCommandList(commandMetadata, [])
-  return renderCommandList(visible, path)
-}
-
-const renderCommandHelp = (found: CommandMetadata): string => [
-  signatureOf(found),
-  "",
-  found.summary,
-  "",
-  "Usage",
-  `  ${usageOf(found)}`,
-  ...section("Flags", flagLines(found)),
-  ...section("Reads", found.endpoints ?? []),
-  ...section("Scopes", found.scopes === undefined ? [] : [found.scopes.join(", ")]),
-  ...section("Examples", found.examples),
-  "",
-  `Answers ${found.output}${found.safety === "read" ? "" : ", and deletes local state"}.`,
-  ""
-].join("\n")
-
-const flagLines = (found: CommandMetadata): readonly string[] => {
-  const flags = found.flags ?? []
-  const width = Math.max(0, ...flags.map((flag) => flagName(flag).length)) + 2
-  return flags.map(flagLine(found, width))
-}
-
-const renderCommandList = (visible: readonly CommandMetadata[], path: readonly string[]): string => {
-  const groups = [...new Set(visible.map((item) => item.group))]
-  const width = Math.max(...visible.map((item) => item.path.join(" ").length)) + 2
-  return [
-    PRIMARY_COMMAND_NAME,
-    "",
-    "Read Figma context from the command line. Every command is read-only.",
-    "",
-    "Usage",
-    `  ${PRIMARY_COMMAND_NAME} ${path.length === 0 ? "COMMAND" : `${path.join(" ")} COMMAND`} [flags]`,
-    "",
-    ...groups.flatMap((group) => [
-      group,
-      ...visible.filter((item) => item.group === group).map((item) => `  ${pad(item.path.join(" "), width)}${item.summary}`),
-      ""
-    ]),
-    `Run \`${PRIMARY_COMMAND_NAME} COMMAND --help\` for what a command needs, or \`${PRIMARY_COMMAND_NAME} describe --json\` for the same as JSON.`,
-    ""
-  ].join("\n")
-}
-
-const section = (title: string, lines: readonly string[]): readonly string[] =>
-  lines.length === 0 ? [] : ["", title, ...lines.map((line) => (line.startsWith("  ") ? line : `  ${line}`))]
-
 const flagUsage = (flag: string, required: boolean): string => {
   const value = flagCatalog[flag]?.value
   const spelled = value === undefined ? flag : `${flag} ${value}`
   return required ? spelled : `[${spelled}]`
 }
-
-const flagName = (flag: string): string => {
-  const value = flagCatalog[flag]?.value
-  return value === undefined ? flag : `${flag} ${value}`
-}
-
-const flagLine = (found: CommandMetadata, width: number) => (flag: string): string => {
-  const summary = `${flagCatalog[flag]?.summary ?? ""}${isRequired(found, flag) ? " (required)" : ""}`
-  return `  ${pad(flagName(flag), width)}${summary}`.trimEnd()
-}
-
-const pad = (value: string, width: number): string => value + " ".repeat(Math.max(1, width - value.length))
 
 const distance = (left: string, right: string): number => {
   const previous = Array.from({ length: right.length + 1 }, (_, at) => at)

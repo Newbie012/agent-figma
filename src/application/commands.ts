@@ -7,9 +7,7 @@ import {
   findCommandMetadata,
   flagsFor,
   nearestFlag,
-  renderBanner,
   renderCompletion,
-  renderHumanHelp,
   suggestCommand,
   usageOf
 } from "../cli/metadata.js"
@@ -36,7 +34,9 @@ import { UsageError, WriteOperationBlocked } from "../domain/errors.js"
 import { normalizeNodeId, parseFigmaReference, type AuthProfile, type Paging } from "../domain/figma.js"
 import { ProfileName, Scope } from "../domain/ids.js"
 import { serializeJson, successEnvelope, toNdjson } from "../output/envelope.js"
+import { renderBanner, renderHumanHelp } from "../output/help.js"
 import { renderHumanEnvelope } from "../output/human.js"
+import { wantsColor } from "../output/paint.js"
 import { projectFields } from "../output/projection.js"
 import { renderTree } from "../output/tree.js"
 import type { EndpointMetadata } from "../ports/EndpointCatalog.js"
@@ -58,7 +58,12 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
   const [first, second, third] = parsed.positionals
 
   if (flagBoolean(parsed, "version")) return rawResult("version", `${CLI_VERSION}\n`)
-  if (flagBoolean(parsed, "help") && !flagBoolean(parsed, "json")) return rawResult("help", renderHumanHelp(parsed.positionals))
+  const colorful = wantsColor({
+    ...(options.stdoutIsTty === undefined ? {} : { stdoutIsTty: options.stdoutIsTty }),
+    noColorFlag: flagBoolean(parsed, "no-color"),
+    ...(options.env === undefined ? {} : { env: options.env })
+  })
+  if (flagBoolean(parsed, "help") && !flagBoolean(parsed, "json")) return rawResult("help", renderHumanHelp(parsed.positionals, colorful))
   if (flagBoolean(parsed, "help") && flagBoolean(parsed, "json")) {
     const metadata = findCommandMetadata(parsed.positionals)
     if (metadata === null) throw unknownCommand(parsed.positionals)
@@ -66,7 +71,7 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
   }
 
   if (parsed.positionals.length === 0) {
-    if (options.stdoutIsTty === true && !flagBoolean(parsed, "json")) return rawResult("banner", renderBanner())
+    if (options.stdoutIsTty === true && !flagBoolean(parsed, "json")) return rawResult("banner", renderBanner(colorful))
     return localResult("describe", { ...describeAllCommands(), endpoints: services.endpointCatalog.list() })
   }
 
