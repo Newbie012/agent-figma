@@ -48,10 +48,13 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
   Harmless while everything is a patch on the way to `0.1.0`; re-check before leaving alpha.
 - npm sets `latest` on a package's first publish whatever `--tag` says, so `0.1.0-alpha.0` is both
   `alpha` and `latest`. The lane governs every release after it. Observed on the first release.
-- `package.json` `files` entries are patterns, not paths: bare `docs` and `README.md` matched
-  `tests/docs` and every nested README, and `0.1.0-alpha.0` shipped six files it should not have.
-  Entries are anchored with `./` now, and `pnpm security:package` fails on anything outside the
-  allowlist rather than trusting the field.
+- `package.json` `files` entries are patterns, not paths, **and pnpm reads them differently from
+  npm**. Bare `docs` matched `tests/docs`, and pnpm includes every `README.md` at any depth whatever
+  anchoring says, so `0.1.0-alpha.0` and `0.1.0-alpha.1` both shipped a test file and five internal
+  READMEs. Anchoring with `./` fixed `npm pack` and changed nothing about what pnpm published: the
+  check was measuring the wrong tool. `docs/**` plus `!**/README.md` and a re-include of
+  `docs/README.md` is what pnpm honours, and `security:package` now packs with pnpm and reads the
+  tarball, so what is checked is what is published.
 
 ## Alternatives considered
 

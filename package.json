@@ -15,13 +15,15 @@
     "afg": "dist/main.js"
   },
   "files": [
-    "./dist",
-    "./docs",
-    "./skills",
-    "./README.md",
-    "./CHANGELOG.md",
-    "./LICENSE",
-    "./.agents/cli-api.md"
+    "dist/**",
+    "docs/**",
+    "skills/**",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    ".agents/cli-api.md",
+    "!**/README.md",
+    "docs/README.md"
   ],
   "scripts": {
     "afg": "pnpm build && node dist/main.js",

@@ -1,10 +1,30 @@
 import { execFileSync } from "node:child_process"
-import { readFileSync } from "node:fs"
+import { readFileSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { basename, extname } from "node:path"
 
 const packageMode = process.argv.includes("--package")
+
+// The tarball is built by `pnpm publish`, and pnpm and npm disagree about
+// package.json `files`: npm honours an anchored path, pnpm matches every
+// README.md at any depth. Asking npm what ships answered for the wrong tool, and
+// 0.1.0-alpha.0 and alpha.1 both shipped a test file because of it. Pack with
+// pnpm, and read the tarball rather than a plan.
+const packedFiles = () => {
+  const packed = execFileSync("pnpm", ["pack", "--pack-destination", tmpdir(), "--silent"], { encoding: "utf8" }).trim().split("\n").at(-1)
+  if (packed === undefined) throw new Error("pnpm pack printed no tarball path")
+  try {
+    return execFileSync("tar", ["tzf", packed], { encoding: "utf8" })
+      .split("\n")
+      .filter((line) => line.length > 0 && !line.endsWith("/"))
+      .map((line) => line.replace(/^package\//, ""))
+  } finally {
+    rmSync(packed, { force: true })
+  }
+}
+
 const files = packageMode
-  ? JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--ignore-scripts", "--json"], { encoding: "utf8" }))[0].files.map((file) => file.path)
+  ? packedFiles()
   : execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"])
       .toString("utf8")
       .split("\0")

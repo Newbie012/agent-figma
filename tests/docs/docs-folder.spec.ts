@@ -31,7 +31,11 @@ describe("docs folder", () => {
 
     expect(Object.keys(manifest.scripts).filter((name) => name.startsWith("docs:"))).toEqual(["docs:check", "docs:write"])
     expect(manifest.scripts["release:check"]).not.toContain("docs:build")
-    expect(manifest.files).toContain("./docs")
+    // pnpm builds the tarball and reads `files` its own way, so the assertion is
+    // about what pnpm honours: a docs glob, and no nested README riding along.
+    expect(manifest.files).toContain("docs/**")
+    expect(manifest.files).toContain("!**/README.md")
+    expect(manifest.files).toContain("docs/README.md")
     expect(workspace).not.toContain('- "docs"')
     expect(index).toContain("[Commands](./reference/commands.md)")
   })
