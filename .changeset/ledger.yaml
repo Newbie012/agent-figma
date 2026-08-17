@@ -9,3 +9,9 @@
     - read-a-mistyped-line
     - tokens-instead-of-numbers
     - what-the-design-asked-for
+"@eliya-oss/agent-figma@0.1.0-alpha.1":
+  dir: ""
+  intents:
+    - public-and-provenanced
+    - ship-only-what-the-package-is
+    - upgrade-in-place
