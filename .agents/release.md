@@ -1,7 +1,8 @@
 # Release
 
-`agent-figma` is on the `alpha` lane, recorded in `pnpm-workspace.yaml`. Every release is a
-prerelease published under the `alpha` dist-tag, so nothing reaches `latest` until the lane moves.
+`agent-figma` is on the `alpha` lane, recorded in `pnpm-workspace.yaml`, so every release is a
+prerelease: `0.1.0-alpha.N`. The version says so; the dist-tag is `latest`, because that is the one
+the publish can set.
 Versioning is pnpm 12's own tooling, not Changesets ([ADR-009](adr/ADR-009-pnpm-native-releases.md)).
 
 pnpm 12 cannot be installed by corepack yet:
@@ -28,8 +29,8 @@ Merging to `main` runs `.github/workflows/release.yml`, which:
 1. holds if the package is not on the registry yet, or if no intent is pending,
 2. runs `pnpm release:check`,
 3. applies the intents with `pnpm version -r`, commits `release <version>` and tags `v<version>`,
-4. publishes with `pnpm publish --tag alpha --provenance` over OIDC trusted publishing,
-   and moves `latest` to the same version,
+4. publishes with `pnpm publish --provenance` over OIDC trusted publishing, which points `latest`
+   at the new version,
 5. drafts a prerelease on GitHub from the generated changelog.
 
 The repository is public, so npm attaches a provenance attestation to each release.
@@ -50,7 +51,7 @@ pnpm version -r                       # 0.1.0 -> 0.1.0-alpha.0, writes the chang
 git add -A && git commit -m "release 0.1.0-alpha.0"
 git tag -a v0.1.0-alpha.0 -m "release 0.1.0-alpha.0"
 git push --atomic origin main refs/tags/v0.1.0-alpha.0
-pnpm build && pnpm publish --tag alpha --no-git-checks
+pnpm build && pnpm publish --no-git-checks
 ```
 
 Then configure the trusted publisher on npmjs.com for `@eliya-oss/agent-figma`
@@ -70,12 +71,14 @@ Check the tags afterwards:
 npm view @eliya-oss/agent-figma dist-tags
 ```
 
-**`latest` follows the channel.** npm points `latest` at a package's first publish whatever `--tag`
-says, and never moves it again for a prerelease — so it froze on `0.1.0-alpha.0` while `alpha` moved
-on, and a bare `npm install` served the oldest build ever published. Every version here is a
-prerelease, so there is no stable release for `latest` to protect: the release job moves it forward
-with each publish. When a stable version ships, `pnpm lane main` takes over and that step should be
-the first thing reconsidered.
+**There is one dist-tag, and the publish sets it.** npm pins `latest` on a package's first publish
+and never moves it again for a prerelease, so it froze on `0.1.0-alpha.0` while a separate `alpha`
+tag moved on — a bare `npm install` served the oldest build ever published. Moving a tag afterwards
+needs credentials that trusted publishing does not grant: `npm dist-tag add` answers `401` in CI,
+because OIDC authenticates the publish and nothing else. So releases publish to `latest` and the
+prerelease lives in the version, where it is visible anyway: `0.1.0-alpha.4`, not a tag someone has
+to know to ask for. The `alpha` tag is frozen at `0.1.0-alpha.3`; remove it once, at your
+convenience, with `npm dist-tag rm @eliya-oss/agent-figma alpha`.
 
 ## How the version is chosen
 

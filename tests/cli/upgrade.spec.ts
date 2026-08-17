@@ -14,8 +14,8 @@ describe("working out how this copy was installed", () => {
   })
 
   it("names the command that replaces each install", () => {
-    expect(planFor("npm", npmInstall).command).toBe("npm install -g @eliya-oss/agent-figma@alpha")
-    expect(planFor("bun", bunInstall).command).toBe("bun add -g @eliya-oss/agent-figma@alpha")
+    expect(planFor("npm", npmInstall).command).toBe("npm install -g @eliya-oss/agent-figma")
+    expect(planFor("bun", bunInstall).command).toBe("bun add -g @eliya-oss/agent-figma")
     expect(planFor("source", checkout).command).toContain("git -C /srv/projects/agent-figma pull")
   })
 
@@ -46,7 +46,7 @@ describe("upgrade", () => {
     })
 
     expect(result.exitCode).toBe(0)
-    expect(driver.install.listRuns()).toEqual([["npm", "install", "-g", "@eliya-oss/agent-figma@alpha"]])
+    expect(driver.install.listRuns()).toEqual([["npm", "install", "-g", "@eliya-oss/agent-figma"]])
     expect(result.stdout).toBe("agent-figma 9.9.9 is installed.\n")
   })
 
@@ -62,7 +62,7 @@ describe("upgrade", () => {
     expect(result.exitCode).toBe(0)
     expect(driver.install.listRuns()).toEqual([])
     expect(result.stdout).toContain("9.9.9 is out")
-    expect(result.stdout).toContain("npm install -g @eliya-oss/agent-figma@alpha")
+    expect(result.stdout).toContain("npm install -g @eliya-oss/agent-figma")
   })
 
   it("says one line and runs nothing when the install is already current", async () => {
@@ -76,7 +76,7 @@ describe("upgrade", () => {
 
     expect(result.exitCode).toBe(0)
     expect(driver.install.listRuns()).toEqual([])
-    expect(result.stdout).toContain("is the newest alpha build")
+    expect(result.stdout).toContain("is the newest published build")
   })
 
   it("explains a checkout rather than pulling it, and exits 1 because nothing happened", async () => {

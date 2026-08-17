@@ -4,8 +4,8 @@
 
 Release with pnpm 12's built-in tooling instead of Changesets. `pnpm change` records an intent,
 `pnpm version -r` applies the pending intents and writes the changelog, and `pnpm lane` keeps the
-package on the `alpha` channel, recorded in `pnpm-workspace.yaml`. Publishing is OIDC trusted
-publishing under the `alpha` dist-tag. pnpm is pinned to `12.0.0-rc.6` in `packageManager`.
+package on the `alpha` channel, recorded in `pnpm-workspace.yaml`. Publishing is OIDC trusted publishing, which
+sets `latest`; the prerelease is in the version. pnpm is pinned to `12.0.0-rc.6` in `packageManager`.
 
 `@changesets/cli` is removed. The intent files stay Changesets-compatible Markdown in `.changeset/`.
 
@@ -46,12 +46,16 @@ pnpm already ships the rest, so this is one fewer dependency doing a job the pac
   unpublished package always says `alpha.0`. Verified, not assumed.
 - A lane produces the next prerelease of the *current* version and ignores the intent's bump type.
   Harmless while everything is a patch on the way to `0.1.0`; re-check before leaving alpha.
-- npm sets `latest` on a package's first publish whatever `--tag` says, and then leaves it there
-  forever for a prerelease. Observed on the first release: `latest` stayed on `0.1.0-alpha.0` while
-  `alpha` moved to `alpha.2`, so a bare `npm install` served the oldest build. While every version
-  is a prerelease there is no stable release for `latest` to protect, so the release job moves it
-  with each publish rather than asking a person to. It is the first thing to revisit when the lane
-  graduates.
+- **Trusted publishing authenticates the publish and nothing else.** `npm dist-tag add` in the same
+  job answers `401`: there is no standing token, which is the point of OIDC. So the only dist-tag a
+  release can set is the one `npm publish` sets, and a second tag cannot be kept in sync without
+  reintroducing the credential this ADR refused.
+- Which settles what `latest` means here. npm pins it on a package's first publish and never moves it
+  again for a prerelease, so it froze on `0.1.0-alpha.0` while a separate `alpha` tag moved to
+  `alpha.3` and a bare `npm install` served the oldest build ever published. Releases publish to
+  `latest`, and the prerelease lives in the version — `0.1.0-alpha.4` is not mistakable for stable,
+  and nobody has to know a channel name to install the CLI. Revisit when a stable release exists and
+  `latest` has something to protect.
 - `package.json` `files` entries are patterns, not paths, **and pnpm reads them differently from
   npm**. Bare `docs` matched `tests/docs`, and pnpm includes every `README.md` at any depth whatever
   anchoring says, so `0.1.0-alpha.0` and `0.1.0-alpha.1` both shipped a test file and five internal

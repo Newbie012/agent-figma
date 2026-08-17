@@ -108,25 +108,11 @@ jobs:
           exit 1
 
       - if: steps.plan.outputs.pending == 'true'
-        name: Publish to the alpha channel
+        # Publishing sets the dist-tag, and OIDC authenticates nothing else, so
+        # the tag has to be the one the publish sets: latest. Every version is a
+        # prerelease, named as one.
+        name: Publish
         run: pnpm release:publish
-
-      - if: steps.plan.outputs.pending == 'true'
-        name: Point latest at it too
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          # Every version is a prerelease, so there is no stable release for
-          # `latest` to protect: leaving it behind only means a bare
-          # `npm install` serves the oldest alpha ever published. It moves with
-          # the channel until a stable release takes it over.
-          NAME=$(node -p "require('./package.json').name")
-          if npm dist-tag add "$NAME@$VERSION" latest; then
-            echo "::notice::latest points at $VERSION."
-          else
-            echo "::error::Could not move latest to $VERSION. The publish succeeded, so latest is still on an older build; move it by hand with: npm dist-tag add $NAME@$VERSION latest"
-            exit 1
-          fi
 
       - if: steps.plan.outputs.pending == 'true'
         name: Wait for the registry to serve it
@@ -136,7 +122,7 @@ jobs:
           NAME=$(node -p "require('./package.json').name")
           for ATTEMPT in 1 2 3 4 5 6; do
             if npm view "$NAME@$VERSION" version > /dev/null 2>&1; then
-              echo "::notice::$NAME@$VERSION is on the registry under the alpha tag."
+              echo "::notice::$NAME@$VERSION is on the registry, and latest points at it."
               exit 0
             fi
             sleep 10

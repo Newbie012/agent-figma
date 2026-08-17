@@ -5,7 +5,7 @@
 Read your Figma files from the command line: files, nodes, comments, versions, rendered images,
 components, and styles. Built so your AI agents can read Figma too. Short alias: `afg`.
 
-<pre align="center">npm install -g @eliya-oss/agent-figma@alpha</pre>
+<pre align="center">npm install -g @eliya-oss/agent-figma</pre>
 
 <p align="center"><a href="docs/installation.md">Other ways to install</a></p>
 
@@ -58,8 +58,8 @@ catalog. It returns only what the active token, its scopes, sharing, plan and se
 Browser OAuth is supported and needs a relay you deploy yourself:
 [Authentication](./docs/authentication.md).
 
-An alpha, published under the `alpha` tag. Docs are in [`docs/`](./docs/README.md), project contracts
-in `.agents/`.
+An alpha: every version is named one, `0.1.0-alpha.3` and counting, and `latest` is whichever is
+newest. Docs are in [`docs/`](./docs/README.md), project contracts in `.agents/`.
 
 ## License
 

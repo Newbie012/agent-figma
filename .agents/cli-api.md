@@ -20,7 +20,7 @@ Goal: expose bounded, deterministic, read-only Figma context to terminals and AI
 - A refusal names the way out: the nearest command when one is mistyped, a noun's verbs when the verb is missing, and the flag it was one keystroke from.
 - `api endpoints list`, `api endpoint describe`, and `api call` provide one discovery and execution flow.
 - `node compare` reads local files the caller names, to report which of the design's tokens and sizes the code never mentions. It is a text scan, so it proves mention rather than use, and it says so. Nothing read from disk leaves the process.
-- `upgrade` runs the install command for the route this copy came from, and `--check` asks instead. An upgrade that was asked for and did not happen exits `1`; `--json` keeps the envelope and exits `0`.
+- `upgrade` runs the install command for the route this copy came from, asking the registry for the newest published version, and `--check` asks instead. An upgrade that was asked for and did not happen exits `1`; `--json` keeps the envelope and exits `0`.
 - No command mutates remote Figma state.
 
 ## Commands

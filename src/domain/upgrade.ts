@@ -9,7 +9,11 @@ export interface UpgradePlan {
 }
 
 export const PACKAGE = "@eliya-oss/agent-figma"
-export const TAG = "alpha"
+
+// Publishing is what sets the dist-tag, and the OIDC credential authenticates
+// nothing but the publish, so there is one tag and the publish keeps it current.
+// The version says `-alpha.N`; the tag is plumbing.
+export const TAG = "latest"
 
 const installed = /node_modules[/\\]@eliya-oss[/\\]agent-figma/
 const bunGlobal = /[/\\]\.bun[/\\]install[/\\]global[/\\]/
@@ -29,10 +33,10 @@ const checkoutOf = (modulePath: string): string =>
 
 export const planFor = (route: UpgradeRoute, modulePath: string): UpgradePlan => {
   if (route === "npm") {
-    return { route, command: `npm install -g ${PACKAGE}@${TAG}`, argv: ["npm", "install", "-g", `${PACKAGE}@${TAG}`], runnable: true }
+    return { route, command: `npm install -g ${PACKAGE}`, argv: ["npm", "install", "-g", PACKAGE], runnable: true }
   }
   if (route === "bun") {
-    return { route, command: `bun add -g ${PACKAGE}@${TAG}`, argv: ["bun", "add", "-g", `${PACKAGE}@${TAG}`], runnable: true }
+    return { route, command: `bun add -g ${PACKAGE}`, argv: ["bun", "add", "-g", PACKAGE], runnable: true }
   }
   return {
     route,
@@ -101,7 +105,7 @@ export const willUpgrade = (finding: UpgradeFinding, check: boolean): boolean =>
 // A person who typed `upgrade` wants one fact: what happened. The command it ran
 // is the second, because they asked what was done on their machine.
 export const sayDone = (finding: UpgradeFinding, ran: boolean): string => {
-  if (finding.upToDate === true) return `agent-figma ${finding.current} is the newest ${TAG} build.`
+  if (finding.upToDate === true) return `agent-figma ${finding.current} is the newest published build.`
   if (!finding.runnable) return `${finding.reason ?? ""}\nRun this instead:\n  ${finding.command}`.trim()
   if (!ran) return `That did not work. Run it yourself:\n  ${finding.command}`
   if (finding.latest === undefined) return `Upgraded. The registry never answered, so the version cannot be named here; run agent-figma --version.`
@@ -109,7 +113,7 @@ export const sayDone = (finding: UpgradeFinding, ran: boolean): string => {
 }
 
 export const sayChecked = (finding: UpgradeFinding): string => {
-  if (finding.upToDate === true) return `agent-figma ${finding.current} is the newest ${TAG} build.`
+  if (finding.upToDate === true) return `agent-figma ${finding.current} is the newest published build.`
   if (finding.latest === undefined) return `agent-figma ${finding.current} is installed. The registry did not answer, so whether it is current is unknown.\n  ${finding.command}`
   return `agent-figma ${finding.latest} is out, and ${finding.current} is installed.\n  ${finding.command}`
 }

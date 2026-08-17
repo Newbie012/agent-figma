@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process"
-import { readFileSync, rmSync } from "node:fs"
+import { existsSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { basename, extname } from "node:path"
 
@@ -55,7 +55,10 @@ for (const file of files) {
     if (rule.test(file)) findings.push(`${file}: ${rule.name}`)
   }
   if (!packageMode && file === "scripts/check-sensitive.mjs") continue
-  const content = readFileSync(file)
+  // git lists a tracked file that has been deleted but not yet staged. Scanning
+  // is not the place to fail on that.
+  const content = existsSync(file) ? readFileSync(file) : undefined
+  if (content === undefined) continue
   if (content.includes(0)) continue
   const text = content.toString("utf8")
   for (const [name, pattern] of contentRules) {

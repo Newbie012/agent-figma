@@ -10,17 +10,17 @@ Every way to install agent-figma, and how to keep it current.
 ## npm
 
 ```bash
-npm install -g @eliya-oss/agent-figma@alpha
+npm install -g @eliya-oss/agent-figma
 ```
 
-Every release goes out under the `alpha` tag while the surface settles, and `latest` is moved to the
-same build, so the bare install above gets the newest alpha too. Naming the tag says out loud that
-this is a prerelease; both resolve to the same version until a stable release exists.
+Every version is a prerelease and is named one — `0.1.0-alpha.3` and counting — and `latest` is
+whichever is newest, because the publish is what sets the tag. There is no separate channel to name:
+`@alpha` was one for the first four releases and is frozen at `0.1.0-alpha.3`, so do not use it.
 
 ## bun
 
 ```bash
-bun add -g @eliya-oss/agent-figma@alpha
+bun add -g @eliya-oss/agent-figma
 ```
 
 bun installs the package; the CLI itself runs on Node.
@@ -62,8 +62,8 @@ agent-figma upgrade
 That upgrades. It works out how this copy was installed by looking at where its own module sits — a
 global npm prefix, a bun global, or a checkout — and runs the command that replaces that install. It
 leaves the package manager's own output on screen, so a slow install visibly lives, and ends by naming
-the version you now have. It asks the registry for the newest `alpha` with a two and a half second
-timeout, and says it could not tell rather than failing when it cannot reach it.
+the version you now have. It asks the registry for the newest published version with a two and a
+half second timeout, and says it could not tell rather than failing when it cannot reach it.
 
 One route it cannot do for you: a checkout is not the CLI's to pull. It prints why and the command
 that does it, and exits `1`, because you asked to be upgraded and you were not.
