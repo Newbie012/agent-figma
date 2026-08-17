@@ -15,3 +15,7 @@
     - public-and-provenanced
     - ship-only-what-the-package-is
     - upgrade-in-place
+"@eliya-oss/agent-figma@0.1.0-alpha.2":
+  dir: ""
+  intents:
+    - check-what-actually-ships
