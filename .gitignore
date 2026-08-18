@@ -9,7 +9,6 @@ coverage/
 .idea/
 .vscode/
 .cache/
-.turbo/
 .pnpm-store/
 *.tsbuildinfo
 *.pem

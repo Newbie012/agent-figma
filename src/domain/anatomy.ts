@@ -1,3 +1,5 @@
+import { isRecord, numberAt, stringAt } from "./json.js"
+
 export interface ParentSizing {
   readonly name?: string
   readonly horizontal?: string
@@ -19,20 +21,6 @@ export interface Ancestor {
 export interface AnatomySources {
   readonly variables: Readonly<Record<string, string>>
   readonly ancestors: Readonly<Record<string, readonly Ancestor[]>>
-}
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-
-const stringAt = (node: Record<string, unknown>, key: string): string | undefined => {
-  const value = node[key]
-  return typeof value === "string" ? value : undefined
-}
-
-const numberAt = (value: unknown, key: string): number | undefined => {
-  if (!isRecord(value)) return undefined
-  const found = value[key]
-  return typeof found === "number" ? found : undefined
 }
 
 const aliasId = (value: unknown): string | undefined => {
@@ -70,17 +58,17 @@ const stylesOf = (data: unknown): Readonly<Record<string, string>> => {
   return collected
 }
 
-const walk = (node: Record<string, unknown>, visit: (node: Record<string, unknown>) => void): void => {
+export const walkNodes = (node: Record<string, unknown>, visit: (node: Record<string, unknown>) => void): void => {
   visit(node)
   const children = node["children"]
   if (!Array.isArray(children)) return
-  for (const child of children) if (isRecord(child)) walk(child, visit)
+  for (const child of children) if (isRecord(child)) walkNodes(child, visit)
 }
 
 export const collectVariableIds = (data: unknown): readonly string[] => {
   const found = new Set<string>()
   for (const document of documentsOf(data)) {
-    walk(document, (node) => {
+    walkNodes(document, (node) => {
       const bound = node["boundVariables"]
       if (!isRecord(bound)) return
       for (const value of Object.values(bound)) {

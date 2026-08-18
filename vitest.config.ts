@@ -2,9 +2,9 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   test: {
-    globals: true,
-    environment: "node",
     include: ["tests/**/*.spec.ts"],
+    // forks, not threads: the OAuth tests bind sockets and read the environment,
+    // which is process state rather than module state.
     pool: "forks",
     coverage: {
       provider: "v8",

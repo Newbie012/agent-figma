@@ -50,7 +50,7 @@ Rules:
 src/
   main.ts
   cli/          argument parser, command metadata
-  domain/       IDs, URL parsing, models, tagged errors
+  domain/       IDs, URL parsing, models, tagged errors, JSON accessors
   application/  command dispatch and output orchestration
   ports/        infrastructure contracts, including the local files node compare reads
   adapters/     live Figma, profile, keychain, catalog implementations

@@ -76,7 +76,7 @@ class FakeInstaller implements Installer {
 
   async run(argv: readonly string[]): Promise<InstallerRun> {
     this.state.installerRuns.push(argv)
-    return { ok: this.state.installerOk, output: "" }
+    return { ok: this.state.installerOk }
   }
 
   async latest(): Promise<string | undefined> {

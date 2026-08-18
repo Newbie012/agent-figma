@@ -1,6 +1,5 @@
 export interface InstallerRun {
   readonly ok: boolean
-  readonly output: string
 }
 
 export interface Installer {

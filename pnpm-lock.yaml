@@ -121,12 +121,6 @@ importers:
         specifier: 4.0.0-beta.99
         version: 4.0.0-beta.99
     devDependencies:
-      '@effect/vitest':
-        specifier: 4.0.0-beta.99
-        version: 4.0.0-beta.99(effect@4.0.0-beta.99)(vitest@4.1.10)
-      '@figma/rest-api-spec':
-        specifier: 0.41.0
-        version: 0.41.0
       '@types/node':
         specifier: latest
         version: 26.2.0
@@ -139,9 +133,6 @@ importers:
       typescript:
         specifier: latest
         version: 7.0.2
-      vite:
-        specifier: 7.3.6
-        version: 7.3.6(@types/node@26.2.0)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.0)
       vitest:
         specifier: latest
         version: 4.1.10(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(vite@7.3.6(@types/node@26.2.0)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.0))
@@ -190,12 +181,6 @@ packages:
     peerDependencies:
       effect: ^4.0.0-beta.99
       ioredis: ^5.7.0
-
-  '@effect/vitest@4.0.0-beta.99':
-    resolution: {integrity: sha512-SiZo3UGTsG2itbqLU1SJVmFraK+0AkrEU7ZLRpQALx3lFRBaohzB/7UQKVsRjCHHjDg0kNkGitZusGRN3mVAhg==}
-    peerDependencies:
-      effect: ^4.0.0-beta.99
-      vitest: ^3.0.0 || ^4.0.0
 
   '@emnapi/core@1.11.2':
     resolution: {integrity: sha512-TC8MkTuZUtcTSiFeuC0ksCh9QIJ5+F21MvZ4Wn4ORfYaFJ/0dsiudv5tVkejgwZlwQ39jL9WWDe2lz8x0WglOA==}
@@ -361,9 +346,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@figma/rest-api-spec@0.41.0':
-    resolution: {integrity: sha512-v43HkJE+ZRB0G1MXwN85LKhOE65WG1205kSCjGihdzNN2U9DyOz4Hnb7swjv+9dWyhJ+aYSQt76lFKIFqrLGNQ==}
 
   '@ioredis/commands@1.10.0':
     resolution: {integrity: sha512-UmeW7z4LfctwoQ5wkhVzgq8tXkreED2xZGpX+Bg+zA+WJFZCT6c062AfCK/Dfk81xZnnwdhJCUMkitihRaoC2Q==}
@@ -1296,11 +1278,6 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  '@effect/vitest@4.0.0-beta.99(effect@4.0.0-beta.99)(vitest@4.1.10)':
-    dependencies:
-      effect: 4.0.0-beta.99
-      vitest: 4.1.10(@types/node@26.2.0)(@vitest/coverage-v8@4.1.10)(vite@7.3.6(@types/node@26.2.0)(jiti@2.7.0)(lightningcss@1.32.0)(yaml@2.9.0))
-
   '@emnapi/core@1.11.2':
     dependencies:
       '@emnapi/wasi-threads': 1.2.2
@@ -1394,8 +1371,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.28.1':
     optional: true
-
-  '@figma/rest-api-spec@0.41.0': {}
 
   '@ioredis/commands@1.10.0': {}
 

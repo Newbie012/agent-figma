@@ -1,12 +1,5 @@
 import { documentRoots } from "../domain/anatomy.js"
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-
-const numberAt = (node: Record<string, unknown>, key: string): number | undefined => {
-  const value = node[key]
-  return typeof value === "number" ? value : undefined
-}
+import { isRecord, numberAt } from "../domain/json.js"
 
 const tokenAt = (node: Record<string, unknown>, key: string): string | undefined => {
   const tokens = node["tokens"]

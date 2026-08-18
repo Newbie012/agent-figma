@@ -26,11 +26,8 @@
     "docs/README.md"
   ],
   "scripts": {
-    "afg": "pnpm build && node dist/main.js",
-    "agent-figma": "pnpm build && node dist/main.js",
     "build": "rolldown -c rolldown.config.mjs",
     "check": "pnpm security:check && pnpm typecheck && pnpm oauth:types && pnpm docs:check && pnpm test:coverage && pnpm build && pnpm smoke && pnpm security:package",
-    "clean": "rm -rf dist coverage",
     "dev": "pnpm build && node dist/main.js",
     "docs:check": "node scripts/write-command-reference.mjs --check",
     "docs:write": "node scripts/write-command-reference.mjs",
@@ -61,13 +58,10 @@
     "effect": "4.0.0-beta.99"
   },
   "devDependencies": {
-    "@effect/vitest": "4.0.0-beta.99",
-    "@figma/rest-api-spec": "0.41.0",
     "@types/node": "latest",
     "@vitest/coverage-v8": "^4.1.9",
     "rolldown": "^1.1.4",
     "typescript": "latest",
-    "vite": "7.3.6",
     "vitest": "latest"
   },
   "engines": {

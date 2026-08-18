@@ -1,4 +1,5 @@
 import type { ErrorEnvelope, SuccessEnvelope } from "../domain/figma.js"
+import { isRecord } from "../domain/json.js"
 import { painter, type PaintName } from "./paint.js"
 
 interface HumanRenderOptions {
@@ -138,7 +139,6 @@ const renderArray = (values: readonly unknown[], paint: (name: PaintName, value:
 
 const hasComplex = (record: Record<string, unknown>, excluded: ReadonlySet<string>): boolean =>
   Object.entries(record).some(([key, value]) => !excluded.has(key) && value !== null && value !== undefined && !isHumanValue(value))
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null && !Array.isArray(value)
 const isScalar = (value: unknown): value is boolean | number | string | null => value === null || ["boolean", "number", "string"].includes(typeof value)
 const isHumanValue = (value: unknown): boolean => isScalar(value) || (Array.isArray(value) && value.every(isScalar))
 const formatValue = (value: unknown): string => Array.isArray(value) ? (value.length === 0 ? "(none)" : value.map(formatScalar).join(", ")) : typeof value === "boolean" ? (value ? "yes" : "no") : formatScalar(value)

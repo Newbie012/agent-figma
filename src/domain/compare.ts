@@ -1,4 +1,6 @@
 import type { SourceFile } from "../ports/SourceCode.js"
+import { documentRoots, walkNodes } from "./anatomy.js"
+import { isRecord } from "./json.js"
 
 export type ExpectationKind = "text-style" | "style" | "token" | "font-size" | "font-weight"
 
@@ -30,31 +32,9 @@ export interface Comparison {
   }
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-
 const nameOf = (node: Record<string, unknown>): string => {
   const name = typeof node["name"] === "string" ? node["name"] : String(node["id"] ?? "a node")
   return name.length > NAME_ROOM ? `${name.slice(0, NAME_ROOM - 1)}…` : name
-}
-
-const documentsOf = (data: unknown): readonly Record<string, unknown>[] => {
-  if (!isRecord(data)) return []
-  const nodes = data["nodes"]
-  if (isRecord(nodes)) {
-    return Object.values(nodes)
-      .map((entry) => (isRecord(entry) ? entry["document"] : undefined))
-      .filter(isRecord)
-  }
-  const document = data["document"]
-  return isRecord(document) ? [document] : []
-}
-
-const walk = (node: Record<string, unknown>, visit: (node: Record<string, unknown>) => void): void => {
-  visit(node)
-  const children = node["children"]
-  if (!Array.isArray(children)) return
-  for (const child of children) if (isRecord(child)) walk(child, visit)
 }
 
 // A variable that could not be resolved is an id, and no implementation is
@@ -92,8 +72,8 @@ const typographyOf = (node: Record<string, unknown>): readonly (readonly [Expect
 
 const expectationsOf = (data: unknown): readonly Expectation[] => {
   const collected = new Map<string, { kind: ExpectationKind; value: string; nodes: string[] }>()
-  for (const document of documentsOf(data)) {
-    walk(document, (node) => {
+  for (const document of documentRoots(data)) {
+    walkNodes(document, (node) => {
       for (const [kind, value] of [...tokensOf(node), ...typographyOf(node)]) {
         const key = `${kind}:${value}`
         const entry = collected.get(key) ?? { kind, value, nodes: [] }

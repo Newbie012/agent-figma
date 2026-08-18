@@ -18,7 +18,7 @@ export class NodeInstaller implements Installer {
   // alive, and swallowing it to reprint a summary helps nobody.
   async run(argv: readonly string[]): Promise<InstallerRun> {
     const [command, ...rest] = argv
-    if (command === undefined) return { ok: false, output: "" }
+    if (command === undefined) return { ok: false }
     return new Promise((resolve) => {
       let settled = false
       const settle = (result: InstallerRun) => {
@@ -29,15 +29,15 @@ export class NodeInstaller implements Installer {
       const child = spawn(command, rest, { stdio: "inherit" })
       const timer = setTimeout(() => {
         child.kill()
-        settle({ ok: false, output: `${command} did not finish within ${RUN_MS / 1000}s` })
+        settle({ ok: false })
       }, RUN_MS)
-      child.on("error", (cause: Error) => {
+      child.on("error", () => {
         clearTimeout(timer)
-        settle({ ok: false, output: cause.message })
+        settle({ ok: false })
       })
       child.on("close", (code: number | null) => {
         clearTimeout(timer)
-        settle({ ok: code === 0, output: "" })
+        settle({ ok: code === 0 })
       })
     })
   }
