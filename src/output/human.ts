@@ -1,7 +1,7 @@
 import type { ErrorEnvelope, SuccessEnvelope } from "../domain/figma.js"
 import { painter, type PaintName } from "./paint.js"
 
-export interface HumanRenderOptions {
+interface HumanRenderOptions {
   readonly color: boolean
 }
 

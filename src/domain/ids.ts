@@ -6,17 +6,9 @@ export type FileKey = typeof FileKey.Type
 export const NodeId = Schema.NonEmptyString.pipe(Schema.brand("@AgentFigma/NodeId"))
 export type NodeId = typeof NodeId.Type
 
-export const ProjectId = Schema.NonEmptyString.pipe(Schema.brand("@AgentFigma/ProjectId"))
-export type ProjectId = typeof ProjectId.Type
-
-export const TeamId = Schema.NonEmptyString.pipe(Schema.brand("@AgentFigma/TeamId"))
-export type TeamId = typeof TeamId.Type
-
 export const ProfileName = Schema.NonEmptyString.pipe(Schema.brand("@AgentFigma/ProfileName"))
 export type ProfileName = typeof ProfileName.Type
 
 export const Scope = Schema.NonEmptyString.pipe(Schema.brand("@AgentFigma/Scope"))
 export type Scope = typeof Scope.Type
 
-export const FigmaPath = Schema.NonEmptyString.pipe(Schema.brand("@AgentFigma/FigmaPath"))
-export type FigmaPath = typeof FigmaPath.Type

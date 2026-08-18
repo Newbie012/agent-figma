@@ -29,16 +29,16 @@ The aggregate driver exposes:
 
 ```text
 driver.auth.setProfile
-driver.auth.clearProfiles
 driver.auth.completeOAuth
 driver.auth.overrideRefresh
 driver.figma.overrideGet
 driver.figma.listCalls
 driver.code.setFiles
-driver.code.clearFiles
+driver.install.setLatest
+driver.install.setInstallerFails
+driver.install.listRuns
 driver.cli.run
 driver.cli.runJson
-driver.snapshot
 ```
 
 Driver methods arrange or read state. Keep assertions in the spec. Behavior tests use `// ARRANGE`, `// ACT`, and `// ASSERT` sections.

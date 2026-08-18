@@ -31,7 +31,7 @@ const files = packageMode
       .filter(Boolean)
 
 const forbiddenFiles = [
-  { name: "environment file", test: (file) => basename(file).startsWith(".env") && basename(file) !== ".env.example" },
+  { name: "environment file", test: (file) => basename(file).startsWith(".env") },
   { name: "npm credentials", test: (file) => basename(file) === ".npmrc" },
   { name: "Vercel project metadata", test: (file) => file.split("/").includes(".vercel") },
   { name: "private key material", test: (file) => [".key", ".pem", ".p12", ".pfx"].includes(extname(file).toLowerCase()) }

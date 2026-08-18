@@ -6,8 +6,4 @@ export class CodeTestDriver {
   setFiles(files: Readonly<Record<string, string>>): void {
     for (const [path, text] of Object.entries(files)) this.state.sourceFiles.set(path, text)
   }
-
-  clearFiles(): void {
-    this.state.sourceFiles.clear()
-  }
 }

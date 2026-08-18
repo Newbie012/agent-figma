@@ -31,10 +31,6 @@ export class AuthTestDriver {
     return profile
   }
 
-  clearProfiles(): void {
-    this.state.profiles.length = 0
-  }
-
   completeOAuth(input: {
     readonly accessToken: string
     readonly refreshToken?: string

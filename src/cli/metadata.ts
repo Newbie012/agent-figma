@@ -7,13 +7,13 @@ const packageJson = typeof __CLI_VERSION__ === "string" ? { version: __CLI_VERSI
 
 export const PRIMARY_COMMAND_NAME = "agent-figma"
 export const SHORT_COMMAND_NAME = "afg"
-export const COMMAND_NAMES = [PRIMARY_COMMAND_NAME, SHORT_COMMAND_NAME] as const
+const COMMAND_NAMES = [PRIMARY_COMMAND_NAME, SHORT_COMMAND_NAME] as const
 export const CLI_VERSION = packageJson.version ?? "0.0.0"
 
-export const DISCOVERY = "Discovery"
-export const AUTHENTICATION = "Authentication"
-export const FIGMA_READS = "Figma reads"
-export const REST_ACCESS = "REST access"
+const DISCOVERY = "Discovery"
+const AUTHENTICATION = "Authentication"
+const FIGMA_READS = "Figma reads"
+const REST_ACCESS = "REST access"
 
 export const flagCatalog: Readonly<Record<string, FlagMetadata>> = {
   "--ancestors": { summary: "Also read the frames above the node, so a FILL size shows what fixes it." },
@@ -96,7 +96,7 @@ export const commandGroups: readonly string[] = [...new Set(commandMetadata.map(
 export const describeAllCommands = () => ({ name: PRIMARY_COMMAND_NAME, aliases: [SHORT_COMMAND_NAME], version: CLI_VERSION, read_only: true, commands: commandMetadata })
 export const findCommandMetadata = (path: readonly string[]) => commandMetadata.find((item) => item.path.join(" ") === path.join(" ")) ?? null
 
-export const commandNames: readonly string[] = commandMetadata.map((item) => item.path.join(" "))
+const commandNames: readonly string[] = commandMetadata.map((item) => item.path.join(" "))
 
 export const commandsUnder = (path: readonly string[]): readonly CommandMetadata[] => {
   if (path.length === 0) return commandMetadata
@@ -104,7 +104,7 @@ export const commandsUnder = (path: readonly string[]): readonly CommandMetadata
   return commandMetadata.filter((item) => item.path.join(" ").startsWith(prefix))
 }
 
-export const nearestCommandName = (name: string): string | undefined => {
+const nearestCommandName = (name: string): string | undefined => {
   const scored = commandNames
     .map((known) => ({ known, gap: distance(name, known) }))
     .sort((left, right) => left.gap - right.gap)[0]

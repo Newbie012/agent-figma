@@ -20,7 +20,8 @@ Do not use Commander. The metadata-driven parser accepts global flags before or 
 - `Catalog`: endpoint metadata and read-only safety classification.
 - `Output`: compact JSON envelopes, NDJSON, field projection, terminal tables, structured errors, and exit codes.
 
-Branded domain types: `FileKey`, `NodeId`, `ProjectId`, `TeamId`, `ProfileName`, `Scope`, and `FigmaPath`.
+Branded domain types: `FileKey`, `NodeId`, `ProfileName`, and `Scope`. A brand earns its place when
+something is parsed into it; four more were declared and never used, so they are gone.
 
 Tagged domain failures: `NotAuthenticated`, `PermissionDenied`, `FigmaRateLimited`, `FigmaApiFailed`, `InvalidFigmaUrl`, `ResourceNotFound`, `WriteOperationBlocked`, and `UsageError`.
 

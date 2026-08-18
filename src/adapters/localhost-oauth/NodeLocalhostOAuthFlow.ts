@@ -16,7 +16,7 @@ import type { AuthProfile } from "../../domain/figma.js"
 import { ProfileName, Scope } from "../../domain/ids.js"
 import type { OAuthFlow, OAuthLoginRequest, OAuthRefreshRequest, OAuthRefreshResult } from "../../ports/OAuthFlow.js"
 
-export interface OAuthFlowOptions {
+interface OAuthFlowOptions {
   readonly relayUrl?: string
   readonly authorizeUrl?: string
   readonly tokenUrl?: string

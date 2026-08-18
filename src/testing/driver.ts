@@ -26,10 +26,6 @@ export class FigmaCliTestDriver implements AsyncDisposable {
     return new FigmaCliTestDriver(createDriverState())
   }
 
-  snapshot(): DriverState {
-    return this.state
-  }
-
   async [Symbol.asyncDispose](): Promise<void> {
     this.state.profiles.length = 0
     this.state.figmaCalls.length = 0

@@ -1,6 +1,6 @@
 import { UsageError } from "../domain/errors.js"
 
-export type TokenStoreKind = "keychain" | "file"
+type TokenStoreKind = "keychain" | "file"
 
 export const selectTokenStoreKind = (
   env: NodeJS.ProcessEnv,

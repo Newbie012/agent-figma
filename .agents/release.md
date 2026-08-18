@@ -80,6 +80,11 @@ prerelease lives in the version, where it is visible anyway: `0.1.0-alpha.4`, no
 to know to ask for. The `alpha` tag is frozen at `0.1.0-alpha.3`; remove it once, at your
 convenience, with `npm dist-tag rm @eliya-oss/agent-figma alpha`.
 
+Applying a version renames the changelog file rather than adding one, so
+`.changeset/changelogs/` only ever holds the newest release. Each version's notes live on its GitHub
+release, which the workflow writes from that file. Consumed intent files are removed once the ledger
+records them; the ledger is what pnpm reads.
+
 ## How the version is chosen
 
 The lane number comes from what is already published: with `0.1.0-alpha.4` on the registry, the next

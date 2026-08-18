@@ -90,7 +90,7 @@ const typographyOf = (node: Record<string, unknown>): readonly (readonly [Expect
   ]
 }
 
-export const expectationsOf = (data: unknown): readonly Expectation[] => {
+const expectationsOf = (data: unknown): readonly Expectation[] => {
   const collected = new Map<string, { kind: ExpectationKind; value: string; nodes: string[] }>()
   for (const document of documentsOf(data)) {
     walk(document, (node) => {

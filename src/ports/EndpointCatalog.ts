@@ -1,4 +1,4 @@
-export type EndpointSafety = "read"
+type EndpointSafety = "read"
 
 export interface EndpointMetadata {
   readonly operation: string

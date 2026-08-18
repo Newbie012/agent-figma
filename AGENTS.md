@@ -34,4 +34,7 @@ Before changing behavior, read:
 4. `.agents/architecture.md`
 5. `.agents/testing.md`
 
+PRDs define behavior, ADRs record durable decisions, issues define implementation slices, and
+`.agents/cli-api.md` is the command surface those produce.
+
 Hard boundary: the CLI is read-only. Do not add Figma mutations without a new PRD and ADR.
