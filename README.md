@@ -9,6 +9,8 @@ components, and styles. Built so your AI agents can read Figma too. Short alias:
 
 <p align="center"><a href="docs/installation.md">Other ways to install</a></p>
 
+<img src="assets/terminal.webp" alt="agent-figma run with no arguments, printing the version, the alias, where output goes, and the three commands to start from" width="820">
+
 </div>
 
 ## Usage
