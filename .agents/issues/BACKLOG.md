@@ -63,7 +63,16 @@ rather than implying the answer is more than it is.
 
 ## ISSUE-008 - Hosted authentication
 
-- **Status:** todo
+- **Status:** in progress
+- **ADRs:** ADR-007
 
-Deploy the OAuth relay, register the Figma app, and complete public-app review. Browser OAuth stays
-opt-in through `AGENT_FIGMA_OAUTH_RELAY_URL` until then; personal access tokens carry the alpha.
+The relay is deployed at https://agent-figma.vercel.app with its session secret and redirect URI set.
+What is left is a registered Figma OAuth app — its client id and secret — and whatever review Figma
+requires before accounts outside the developer's own can authorize it. Until those land, a session
+request answers `503` naming the unset variable, and the CLI has no compiled relay hostname
+(ADR-007), so browser OAuth stays opt-in through `AGENT_FIGMA_OAUTH_RELAY_URL` and personal access
+tokens carry the alpha.
+
+Wiring the hostname as the default is a deliberate amendment to ADR-007, which currently refuses one
+on the grounds that an undeployed default must not receive credentials. That reason expires once the
+app is registered and the relay answers.

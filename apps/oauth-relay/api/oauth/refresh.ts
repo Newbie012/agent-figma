@@ -1,4 +1,4 @@
-import { env, parseBody, secureHeaders, type RequestLike, type ResponseLike } from "./shared"
+import { env, parseBody, secureHeaders, statusFor, type RequestLike, type ResponseLike } from "./shared.js"
 
 export default async function handler(request: RequestLike, response: ResponseLike): Promise<void> {
   secureHeaders(response)
@@ -19,7 +19,7 @@ export default async function handler(request: RequestLike, response: ResponseLi
     if (!refreshed.ok || typeof value.access_token !== "string" || typeof value.expires_in !== "number") throw new Error("Figma token refresh failed")
     json(response, 200, { accessToken: value.access_token, expiresIn: value.expires_in })
   } catch (error) {
-    json(response, 400, { error: error instanceof Error ? error.message : "OAuth refresh failed" })
+    json(response, statusFor(error), { error: error instanceof Error ? error.message : "OAuth refresh failed" })
   }
 }
 

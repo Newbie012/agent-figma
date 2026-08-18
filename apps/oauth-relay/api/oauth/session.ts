@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto"
-import { challengeFor, env, parseBody, readScopes, sealSession, secureHeaders, type RequestLike, type ResponseLike, type SessionPayload } from "./shared"
+import { challengeFor, env, parseBody, readScopes, sealSession, secureHeaders, statusFor, type RequestLike, type ResponseLike, type SessionPayload } from "./shared.js"
 
 export default function handler(request: RequestLike, response: ResponseLike): void {
   secureHeaders(response)
@@ -34,7 +34,7 @@ export default function handler(request: RequestLike, response: ResponseLike): v
     authorizationUrl.searchParams.set("code_challenge_method", "S256")
     json(response, 200, { state, authorization_url: authorizationUrl.toString() })
   } catch (error) {
-    json(response, 400, { error: error instanceof Error ? error.message : "Invalid OAuth session" })
+    json(response, statusFor(error), { error: error instanceof Error ? error.message : "Invalid OAuth session" })
   }
 }
 

@@ -1,4 +1,4 @@
-import { encryptGrant, env, firstValue, openSession, secureHeaders, type RequestLike, type ResponseLike, type TokenGrant } from "./shared"
+import { encryptGrant, env, firstValue, openSession, secureHeaders, statusFor, type RequestLike, type ResponseLike, type TokenGrant } from "./shared.js"
 
 export default async function handler(request: RequestLike, response: ResponseLike): Promise<void> {
   secureHeaders(response)
@@ -40,7 +40,7 @@ export default async function handler(request: RequestLike, response: ResponseLi
     target.searchParams.set("grant", encryptGrant(grant, session.publicKey, state))
     redirect(response, target)
   } catch (error) {
-    response.statusCode = 400
+    response.statusCode = statusFor(error)
     response.setHeader("content-type", "application/json; charset=utf-8")
     response.end(JSON.stringify({ error: error instanceof Error ? error.message : "OAuth callback failed" }))
   }

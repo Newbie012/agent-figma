@@ -103,11 +103,17 @@ export const validateSession = (session: SessionPayload): void => {
 
 export const challengeFor = (verifier: string): string => createHash("sha256").update(verifier).digest("base64url")
 
+// A relay missing its own credentials is not a caller's bad request. It answers
+// 503 and names what is unset, so the operator reads the fault instead of guessing.
+export class ConfigurationError extends Error {}
+
 export const env = (name: string): string => {
   const value = process.env[name]
-  if (value === undefined || value === "") throw new Error(`Missing ${name}`)
+  if (value === undefined || value === "") throw new ConfigurationError(`This relay is not configured: ${name} is unset`)
   return value
 }
+
+export const statusFor = (error: unknown): number => (error instanceof ConfigurationError ? 503 : 400)
 
 export const parseBody = (body: unknown): Record<string, unknown> => {
   if (typeof body === "string") return JSON.parse(body) as Record<string, unknown>
