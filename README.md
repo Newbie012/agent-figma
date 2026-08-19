@@ -57,7 +57,7 @@ frame as one line per node, and what the design asks for that your code never me
 Every command is read-only: only GET requests, and `api call` resolves through a bundled GET-only
 catalog. It returns only what the active token, its scopes, sharing, plan and seat allow.
 
-Browser OAuth is supported and needs a relay you deploy yourself:
+Browser OAuth works if you register a Figma app and host the relay in `apps/oauth-relay` yourself:
 [Authentication](./docs/authentication.md).
 
 An alpha: every version is named one, `0.1.0-alpha.3` and counting, and `latest` is whichever is

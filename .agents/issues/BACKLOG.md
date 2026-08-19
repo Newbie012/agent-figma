@@ -45,12 +45,26 @@ Generate and validate the bundled GET-only endpoint metadata from Figma's OpenAP
 
 ## ISSUE-007 - First release
 
-- **Status:** in progress
+- **Status:** done
 - **ADRs:** ADR-009
 
-Releasing runs on pnpm 12's own tooling, on the `alpha` lane, over OIDC trusted publishing. What is
-left is the bootstrap in [`.agents/release.md`](../release.md): publish `0.1.0-alpha.0` by hand once,
-then configure the trusted publisher on npm so CI takes over.
+`0.1.0-alpha.0` was published by hand to bootstrap the trusted publisher, and every release since has
+been cut by CI over OIDC with provenance. Merging to `main` with a pending intent is the whole
+process.
+
+## ISSUE-008 - Hosted authentication
+
+- **Status:** closed, not done
+- **PRDs:** PRD-003
+- **ADRs:** ADR-007
+
+Figma refused the public OAuth app: no video of the flow in the submission, and a name their reviewer
+reads as Figma's own tooling beside the Figma Agent SDK. A personal access token is how the CLI signs
+in, which is what the docs say.
+
+The relay stays deployed at https://agent-figma.vercel.app with no client credentials, as the
+reference deployment an operator copies. Reopening this means deciding on a name first, then a
+submission with a recording — see ISSUE-010.
 
 ## ISSUE-009 - Compare a node against the code that implements it
 
@@ -61,18 +75,14 @@ then configure the trusted publisher on npm so CI takes over.
 text scan by design: parsing the framework's semantics is a different product, and PRD-005 says so
 rather than implying the answer is more than it is.
 
-## ISSUE-008 - Hosted authentication
+## ISSUE-010 - Decide what this is called
 
-- **Status:** in progress
-- **ADRs:** ADR-007
+- **Status:** todo
 
-The relay is deployed at https://agent-figma.vercel.app with its session secret and redirect URI set.
-What is left is a registered Figma OAuth app — its client id and secret — and whatever review Figma
-requires before accounts outside the developer's own can authorize it. Until those land, a session
-request answers `503` naming the unset variable, and the CLI has no compiled relay hostname
-(ADR-007), so browser OAuth stays opt-in through `AGENT_FIGMA_OAUTH_RELAY_URL` and personal access
-tokens carry the alpha.
+Figma's reviewer read `agent-figma` as Figma's own tooling, next to their Agent SDK. That blocks a
+public OAuth app, and it is the kind of objection a trademark holder can raise again later about the
+npm package and the repository, not only about the app.
 
-Wiring the hostname as the default is a deliberate amendment to ADR-007, which currently refuses one
-on the grounds that an undeployed default must not receive credentials. That reason expires once the
-app is registered and the relay answers.
+Renaming costs a published package name, a repository, a binary, an alias, a skill id, and every doc
+that names them. Deciding not to rename costs browser login for anyone who will not host a relay.
+Neither is urgent while tokens work, and the choice belongs to whoever owns the name.

@@ -62,9 +62,9 @@ agent-figma api call OPERATION --payload JSON --json
 
 ## Authentication
 
-- `auth login` starts browser OAuth with PKCE and exact state verification when `AGENT_FIGMA_OAUTH_RELAY_URL` points to a trusted deployed callback.
+- `auth login --token` stores a personal access token, which is how the CLI is signed in. `AGENT_FIGMA_TOKEN` and `FIGMA_TOKEN` work in its place.
+- `auth login` with `AGENT_FIGMA_OAUTH_RELAY_URL` set starts browser OAuth with PKCE and exact state verification against that relay. There is no default relay, and Figma's review refused a public app for this CLI, so this path belongs to operators who register their own.
 - `--no-open` prints the authorization URL. `--auth-url-out PATH` writes it for headless browser handoff.
-- `--token` stores a personal access token and never starts OAuth.
 - `--oauth` is the self-hosted path. It requires `--client-id`, `--client-secret`, and a registered `--redirect-uri`. The CLI uses the client secret for that process and never stores it.
 - Default OAuth scopes are the read-only scopes used by the command catalog. A requested scope outside the read allowlist is rejected.
 - OAuth profiles refresh shortly before expiry. Failed refresh returns `NotAuthenticated` with a re-login suggestion.

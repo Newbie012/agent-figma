@@ -12,7 +12,7 @@ No. Figma returns only what the active account, file sharing, team membership, s
 
 ## Does it support OAuth?
 
-Yes. `agent-figma auth login` uses browser OAuth with PKCE, exact state verification, encrypted localhost handoff, and automatic refresh. Personal access tokens remain available through `--token`.
+A personal access token is how you sign in: `agent-figma auth login --token "$FIGMA_TOKEN"`. The CLI also implements authorization-code OAuth with PKCE, which needs an OAuth app of your own and a hosted relay holding its client secret, because Figma will not exchange a code without one.
 
 ## Where is my token stored?
 

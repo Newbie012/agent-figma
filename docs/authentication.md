@@ -1,24 +1,19 @@
 # Authentication
 
-Connect Figma with browser OAuth or a personal access token, without exposing secrets.
+Connect Figma with a personal access token, and keep the secret out of your shell history and out of
+the CLI's output.
 
-## Browser OAuth
-
-Browser login is the default:
+## Personal access token
 
 ```bash
-agent-figma auth login --profile work
+agent-figma auth login --token "$FIGMA_TOKEN"
 ```
 
-Browser login requires a registered Figma app and a deployed relay. Set `AGENT_FIGMA_OAUTH_RELAY_URL` to the relay URL. Until then, use a personal access token.
+Create the token in Figma under Settings, Security, personal access tokens, and give it read scopes.
+On macOS the token goes to the Keychain; elsewhere it goes to a file only your user can read. Profile
+metadata (the name, the scopes you recorded, never the secret) sits in the config directory.
 
-The CLI opens Figma in your browser, requests read-only scopes with PKCE, verifies the callback state, and stores the profile. Use `--no-open` to print the URL or `--auth-url-out PATH` to pass it to a headless browser.
-
-OAuth profiles use automatic refresh shortly before access-token expiry. Status output reports whether a profile is refreshable but never returns access or refresh tokens.
-
-## Personal access token fallback
-
-For CI or private use, create a token in Figma account settings and pass it explicitly:
+`--scopes` records what you granted, so `auth scopes` can tell you later:
 
 ```bash
 agent-figma auth login \
@@ -28,7 +23,30 @@ agent-figma auth login \
   --json
 ```
 
-The `--scopes` value records the access you granted. Figma can still deny a request. Agent Figma rejects write scopes during OAuth login.
+Figma decides the real access. What you record here only documents it.
+
+Two environment variables work as a token too, which is what CI usually wants:
+`AGENT_FIGMA_TOKEN`, or `FIGMA_TOKEN` if you already export that.
+
+## Browser OAuth, if you register your own Figma app
+
+The CLI can do authorization-code OAuth with PKCE, and the code for it ships. Using it takes two
+things Figma requires: an OAuth app of your own, and a hosted endpoint holding its client secret,
+because Figma will not exchange a code without one. `apps/oauth-relay` is that endpoint, deployable
+to Vercel in a few minutes.
+
+```bash
+export AGENT_FIGMA_OAUTH_RELAY_URL=https://your-relay.example.com
+agent-figma auth login --profile work
+```
+
+The CLI opens Figma, asks for read scopes with PKCE, verifies the callback state exactly, decrypts
+the grant on a loopback callback, and refreshes shortly before expiry. `--no-open` prints the URL,
+and `--auth-url-out PATH` writes it for a headless browser.
+
+There is no default relay: the CLI has no compiled hostname, so nothing sends your authorization code
+anywhere you did not name. Publishing an OAuth app for general use also needs Figma's review, which
+is why the token above is the documented path.
 
 ## Named profiles
 

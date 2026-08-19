@@ -1,12 +1,23 @@
-# PRD-003 - Browser OAuth
+# PRD-003 - Browser OAuth, for operators who bring their own Figma app
+
+## Status
+
+Implemented and shipped, and not the way anyone signs in. A personal access token is
+([PRD-001](001-read-only-figma-context.md)). Figma rejected the public OAuth app this was built for,
+on two grounds: the submission carried no video of the flow, and the name `agent-figma` reads as
+Figma's own tooling next to their Agent SDK. Publishing publicly therefore needs a rename and another
+review round, which is a product decision rather than a missing feature. Everything below still works
+for an operator who registers their own app and hosts the relay.
 
 ## User need
 
-An operator can run `agent-figma auth login`, approve a read-only Figma app in a browser, and keep using the CLI after access-token expiry without manually creating or rotating tokens.
+An operator who has their own Figma OAuth app can run `agent-figma auth login`, approve read-only
+access in a browser, and keep using the CLI after access-token expiry without rotating tokens by hand.
 
 ## Behavior
 
-- Browser login is the default. `--token` provides a non-interactive fallback.
+- A personal access token is how the CLI is signed in. Browser login is available to an operator who
+  sets `AGENT_FIGMA_OAUTH_RELAY_URL` to a relay they host.
 - Request only reviewed read scopes and use authorization code flow with PKCE S256 and exact state verification.
 - A hosted callback exchanges Figma's short-lived code because Figma requires the OAuth client secret at exchange and refresh time.
 - The callback returns an encrypted token grant to the localhost listener. Plaintext tokens never appear in redirect URLs, browser history, CLI output, or logs.

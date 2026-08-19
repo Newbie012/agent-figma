@@ -6,7 +6,7 @@ An operator or agent can authenticate once, discover the CLI without reading its
 
 ## Behavior
 
-- Accept browser OAuth by default and personal access tokens through `--token` or environment variables.
+- Accept a personal access token through `--token`, `AGENT_FIGMA_TOKEN`, or `FIGMA_TOKEN`. Browser OAuth is available to an operator who registers a Figma app and hosts the relay ([PRD-003](003-figma-oauth.md)).
 - Keep named profiles outside the project directory.
 - Accept both raw file keys and standard Figma file URLs.
 - Extract `node-id` from a Figma URL when present.

@@ -11,7 +11,7 @@ Use `agent-figma` as the read-only Figma boundary. `afg` is the short alias.
 
 1. Inspect the available surface with `agent-figma describe --json`.
 2. Check authentication with `agent-figma auth status --json`.
-3. If authentication is missing, run `agent-figma auth login` when `AGENT_FIGMA_OAUTH_RELAY_URL` is configured. Otherwise, ask the user to run `agent-figma auth login --token "$FIGMA_TOKEN"`. Never request, print, or echo the token.
+3. If authentication is missing, ask the user to run `agent-figma auth login --token "$FIGMA_TOKEN"` themselves, or to export `AGENT_FIGMA_TOKEN`. Never request, print, or echo the token. Where `AGENT_FIGMA_OAUTH_RELAY_URL` is set, `agent-figma auth login` opens a browser instead and needs no token from anyone.
 4. Prefer a focused noun-verb command. Use `api endpoints list` and `api endpoint describe` to discover less common reads.
 5. Use `api call` only for a bundled operation; pass path and query values in `--payload`.
 6. Use `node get` for node URLs and `file get --depth N` for shallow document outlines.

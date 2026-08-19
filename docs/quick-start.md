@@ -10,7 +10,7 @@ Create a personal access token in Figma account settings, then connect it:
 agent-figma auth login --token "$FIGMA_TOKEN"
 ```
 
-On macOS, tokens go to Keychain. Profile metadata stays in the local Agent Figma config directory. You can also use browser OAuth after configuring a trusted relay. See [Authentication](./authentication.md).
+On macOS the token goes to the Keychain, and elsewhere to a file only your user can read. Profile metadata stays in the local config directory. `AGENT_FIGMA_TOKEN` or `FIGMA_TOKEN` work instead of the flag. See [Authentication](./authentication.md).
 
 ## 2. Check the profile
 

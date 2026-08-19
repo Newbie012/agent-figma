@@ -2,7 +2,16 @@
 
 ## Status
 
-Accepted.
+Accepted, and narrowed by what happened next. The relay is deployed at
+https://agent-figma.vercel.app and works up to the point Figma has to recognise an app: it seals
+sessions, and answers `503` naming the credential it lacks. It holds no client credentials, because
+the app they were for was rejected — no video of the flow, and a name Figma reads as its own next to
+the Figma Agent SDK. Signing in is a personal access token until someone decides whether to rename
+and re-apply.
+
+Two things this cost, worth keeping: the handlers imported `./shared` with no extension under
+`"type": "module"`, so every function died at load until deployment proved it, and Vercel builds the
+functions with the local TypeScript, which cannot be the 7.x the CLI uses.
 
 ## Context
 
@@ -27,7 +36,7 @@ OAuth token and refresh POSTs are authentication control-plane operations. They 
 
 ## Consequences
 
-- Browser login provides a one-command flow once the Figma OAuth app and relay are deployed.
+- Browser login provides a one-command flow for an operator who registers an app and hosts the relay.
 - The hosted service is a security and availability dependency and must protect its client secret and sealing key.
-- Public OAuth distribution requires Figma app review. Until deployment is configured, operators can use `--token` or self-host the relay.
+- Public OAuth distribution requires Figma app review, and review has refused this app once. `--token` is the documented path; self-hosting is the way to browser login.
 - Refresh tokens remain usable until revoked, so local storage and relay handling are treated as secret-bearing boundaries.

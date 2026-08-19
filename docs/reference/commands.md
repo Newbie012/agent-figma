@@ -106,7 +106,7 @@ Answers sanitized profile status.
 
 ### `agent-figma auth login`
 
-Connect a Figma profile with browser OAuth or a personal access token.
+Connect a Figma profile with a personal access token, or with browser OAuth through your own relay.
 
 ```bash
 agent-figma auth login [--token TOKEN] [--profile NAME] [--scopes LIST] [--oauth] [--client-id ID] [--client-secret SECRET] [--redirect-uri URI] [--no-open] [--auth-url-out PATH] [--timeout-ms N] [--json]
