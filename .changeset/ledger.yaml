@@ -31,3 +31,7 @@
   dir: ""
   intents:
     - help-you-can-scan
+"@eliya-oss/agent-figma@0.1.0-alpha.6":
+  dir: ""
+  intents:
+    - tokens-are-how-you-sign-in
