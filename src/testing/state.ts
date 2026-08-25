@@ -7,10 +7,17 @@ export interface FigmaStub {
   readonly result: FigmaGetResult
 }
 
+export interface ImageSave {
+  readonly url: string
+  readonly path: string
+}
+
 export interface DriverState {
   readonly profiles: AuthProfile[]
   readonly sourceFiles: Map<string, string>
   readonly installerRuns: (readonly string[])[]
+  readonly imageBytes: Map<string, number>
+  readonly imageSaves: ImageSave[]
   installerOk: boolean
   latestVersion: string | undefined
   readonly figmaStubs: FigmaStub[]
@@ -26,6 +33,8 @@ export const createDriverState = (): DriverState => ({
   profiles: [],
   sourceFiles: new Map(),
   installerRuns: [],
+  imageBytes: new Map(),
+  imageSaves: [],
   installerOk: true,
   latestVersion: undefined,
   figmaStubs: [],

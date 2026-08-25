@@ -8,6 +8,7 @@ import type { TokenStore } from "../ports/TokenStore.js"
 import type { OAuthFlow, OAuthLoginRequest, OAuthRefreshRequest, OAuthRefreshResult } from "../ports/OAuthFlow.js"
 import type { Installer, InstallerRun } from "../ports/Installer.js"
 import type { SourceCode, SourceCodeRead } from "../ports/SourceCode.js"
+import type { ImageDownload, ImageSaved } from "../ports/ImageDownload.js"
 import type { DriverState } from "./state.js"
 
 class InMemoryTokenStore implements TokenStore {
@@ -48,6 +49,17 @@ class FakeFigmaRestApi implements FigmaRestApi {
       throw new FigmaApiFailed({ message: `No Figma stub for ${input.path}`, path: input.path })
     }
     return stub.result
+  }
+}
+
+class FakeImageDownload implements ImageDownload {
+  constructor(private readonly state: DriverState) {}
+
+  async save(url: string, path: string): Promise<ImageSaved> {
+    const bytes = this.state.imageBytes.get(url)
+    if (bytes === undefined) throw new FigmaApiFailed({ message: `No render stubbed at ${url}`, path: url })
+    this.state.imageSaves.push({ url, path })
+    return { bytes }
   }
 }
 
@@ -111,5 +123,6 @@ export const createTestServices = (state: DriverState): CliServices => ({
   endpointCatalog: new BundledEndpointCatalog(),
   oauthFlow: new FakeOAuthFlow(state),
   sourceCode: new FakeSourceCode(state),
-  installer: new FakeInstaller(state)
+  installer: new FakeInstaller(state),
+  imageDownload: new FakeImageDownload(state)
 })

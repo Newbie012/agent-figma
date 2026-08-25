@@ -13,6 +13,7 @@ An operator or agent can authenticate once, discover the CLI without reading its
 - Read a whole file with an optional depth bound.
 - Read one node without returning unrelated document content.
 - Read identity, team projects, project files, comments, versions, rendered images, components, component sets, and styles.
+- Write a rendered image to a path with `--out`, so looking at a design is one command rather than a URL to fetch afterwards. It writes one image, so it names one node.
 - Generate shell completion and expose endpoint metadata through a command-catalog-first interface.
 - Provide a raw `api call` escape hatch that can invoke only bundled GET endpoints.
 - Use the same stable success-envelope shape across all commands: `method`, identity fields, `data`, `paging`, and `warnings`.
@@ -29,6 +30,7 @@ An operator or agent can authenticate once, discover the CLI without reading its
 
 - No POST, PUT, PATCH, or DELETE data request may reach Figma. OAuth exchange and refresh POSTs are limited to the authentication boundary described by ADR-007.
 - `api call` refuses unrecognized operations; arbitrary URLs and HTTP methods are never accepted.
+- `--out` writes only what Figma just rendered, to the path the caller named. Several nodes and one path is a usage failure, not a last-one-wins overwrite, and a node Figma rendered nothing for leaves no file behind.
 - No token value may appear in status output, errors, logs, or command discovery.
 - No flag reaches a Figma request without being declared. A flag the catalog does not carry stops the command before it calls Figma.
 

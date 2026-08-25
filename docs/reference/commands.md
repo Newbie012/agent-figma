@@ -303,7 +303,7 @@ Reads `GET /v1/files/:key`.
 Scopes: `file_content:read`.
 
 ```bash
-agent-figma file get FILE_OR_URL [--profile NAME] [--depth N] [--json] [--pretty] [--format json|ndjson|table|tree] [--fields a,b.c]
+agent-figma file get FILE_OR_URL [--profile NAME] [--depth N] [--json] [--pretty] [--format json|ndjson|table|tree] [--include-hidden] [--fields a,b.c]
 ```
 
 | Flag | Meaning |
@@ -313,6 +313,7 @@ agent-figma file get FILE_OR_URL [--profile NAME] [--depth N] [--json] [--pretty
 | `--json` | Answer with the JSON envelope, whatever stdout is attached to. |
 | `--pretty` | Indent JSON output. |
 | `--format json\|ndjson\|table\|tree` | Choose the output representation. `tree` is one readable line per node. |
+| `--include-hidden` | Keep layers the design does not draw in `--format tree`, marked hidden. |
 | `--fields a,b.c` | Project the data down to the named paths. |
 
 ```bash
@@ -330,7 +331,7 @@ Reads `GET /v1/files/:key/nodes`.
 Scopes: `file_content:read`.
 
 ```bash
-agent-figma file nodes get FILE_OR_URL --ids ID[,ID] [--depth N] [--ancestors] [--profile NAME] [--json] [--format json|ndjson|table|tree] [--fields a,b.c]
+agent-figma file nodes get FILE_OR_URL --ids ID[,ID] [--depth N] [--ancestors] [--profile NAME] [--json] [--format json|ndjson|table|tree] [--include-hidden] [--fields a,b.c]
 ```
 
 | Flag | Meaning |
@@ -341,6 +342,7 @@ agent-figma file nodes get FILE_OR_URL --ids ID[,ID] [--depth N] [--ancestors] [
 | `--profile NAME` | Named auth profile. Defaults to `default`. |
 | `--json` | Answer with the JSON envelope, whatever stdout is attached to. |
 | `--format json\|ndjson\|table\|tree` | Choose the output representation. `tree` is one readable line per node. |
+| `--include-hidden` | Keep layers the design does not draw in `--format tree`, marked hidden. |
 | `--fields a,b.c` | Project the data down to the named paths. |
 
 ```bash
@@ -358,7 +360,7 @@ Reads `GET /v1/files/:key/nodes`.
 Scopes: `file_content:read`.
 
 ```bash
-agent-figma node get FILE_OR_URL [--id NODE_ID] [--depth N] [--no-ancestors] [--profile NAME] [--json] [--pretty] [--format json|ndjson|table|tree] [--fields a,b.c]
+agent-figma node get FILE_OR_URL [--id NODE_ID] [--depth N] [--no-ancestors] [--profile NAME] [--json] [--pretty] [--format json|ndjson|table|tree] [--include-hidden] [--fields a,b.c]
 ```
 
 | Flag | Meaning |
@@ -370,6 +372,7 @@ agent-figma node get FILE_OR_URL [--id NODE_ID] [--depth N] [--no-ancestors] [--
 | `--json` | Answer with the JSON envelope, whatever stdout is attached to. |
 | `--pretty` | Indent JSON output. |
 | `--format json\|ndjson\|table\|tree` | Choose the output representation. `tree` is one readable line per node. |
+| `--include-hidden` | Keep layers the design does not draw in `--format tree`, marked hidden. |
 | `--fields a,b.c` | Project the data down to the named paths. |
 
 ```bash
@@ -463,7 +466,7 @@ Reads `GET /v1/images/:key`.
 Scopes: `file_content:read`.
 
 ```bash
-agent-figma image render FILE_OR_URL --ids ID[,ID] [--format json|ndjson|table|tree] [--scale N] [--profile NAME] [--json] [--fields a,b.c]
+agent-figma image render FILE_OR_URL --ids ID[,ID] [--format json|ndjson|table|tree] [--scale N] [--out PATH] [--profile NAME] [--json] [--fields a,b.c]
 ```
 
 | Flag | Meaning |
@@ -471,6 +474,7 @@ agent-figma image render FILE_OR_URL --ids ID[,ID] [--format json|ndjson|table|t
 | `--ids ID[,ID]` | Node ids, written 1:2 or the 1-2 form a Figma URL uses. (required) |
 | `--format json\|ndjson\|table\|tree` | Choose the output representation. `tree` is one readable line per node. |
 | `--scale N` | Render scale, between 0.01 and 4. |
+| `--out PATH` | Write the rendered image here instead of answering with its URL. |
 | `--profile NAME` | Named auth profile. Defaults to `default`. |
 | `--json` | Answer with the JSON envelope, whatever stdout is attached to. |
 | `--fields a,b.c` | Project the data down to the named paths. |

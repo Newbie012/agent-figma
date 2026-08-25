@@ -14,6 +14,12 @@ ancestors at all, so the constraint is invisible: a panel that is deliberately h
 exactly like one that should stretch. Getting this wrong ships a layout that looks right in the
 node payload and wrong on the page.
 
+Two more things a payload does not say out loud. Every coordinate Figma returns is a canvas
+coordinate, so a layer's place inside the frame being implemented has to be worked out by hand, and
+a wrong subtraction is a wrong layout that reads as a correct one. And a layer Figma will not draw
+sits in the payload beside the layers it will, at plausible coordinates, so reading a design from
+JSON reliably invents work that does not exist.
+
 ## Behavior
 
 - Resolve style references on every node from the `styles` map the same response already carries, so
@@ -31,15 +37,20 @@ node payload and wrong on the page.
 - Read the frames above the requested node, so the containing frame is named even though it is
   outside the returned subtree. `node get` does this by default and `--no-ancestors` turns it off;
   a bulk `file nodes get` does it only when asked with `--ancestors`.
-- Offer `--format tree`: one line per node, indented by depth, carrying name, size, the sizing chain,
-  layout mode, gap, padding, radius and the resolved tokens. This is the output someone implementing
-  a design reads top to bottom:
+- Offer `--format tree`: one line per node, indented by depth, carrying its place, name, size, the
+  sizing chain, layout mode, gap, padding, radius and the resolved tokens. This is the output someone
+  implementing a design reads top to bottom:
 
   ```text
   FRAME Spend panel  850x240 (own=FILL, parent=FIXED 850)  vertical  gap=spacing/md  pad=24  radius=8
-    TEXT Title  text=md/regular  14/400
-    FRAME Row  802x40 (own=FILL, parent=FILL 850)  horizontal  gap=spacing/md
+    TEXT Title  at=24,24  text=md/regular  14/400
+    FRAME Row  at=24,66  802x40 (own=FILL, parent=FILL 850)  horizontal  gap=spacing/md
   ```
+
+- Place every layer in the tree against the node that was asked for, not the canvas. The requested
+  node is the frame of reference and carries no place of its own.
+- Leave layers the design does not draw out of the tree. `--include-hidden` keeps them, marked
+  `hidden`, for the times the question is what a variant holds rather than what it renders.
 
 - Accept `--depth` on `node get` and `file nodes get`, as `file get` already does.
 
@@ -60,6 +71,10 @@ node payload and wrong on the page.
   403 they print raw ids and the envelope carries a warning naming the status and the endpoint.
 - The variables endpoint is requested at most once per file in one command run.
 - `--format tree` renders a frame and its descendants as indented lines a person can read.
+- Each line places its layer relative to the requested node, and the requested node itself has no
+  `at=`.
+- A `visible: false` layer and everything under it is absent from the tree, and present and marked
+  `hidden` under `--include-hidden`.
 - `node get` reports the requested node's own sizing and the sizing of the frame above it, and lists
   that frame in `ancestors`, in one extra request.
 - `--no-ancestors` makes that request go away, and a bulk `file nodes get` does not make it unless

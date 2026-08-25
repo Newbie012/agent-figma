@@ -30,7 +30,8 @@ import {
   TAG,
   willUpgrade
 } from "../domain/upgrade.js"
-import { UsageError, WriteOperationBlocked } from "../domain/errors.js"
+import { FigmaApiFailed, UsageError, WriteOperationBlocked } from "../domain/errors.js"
+import { isRecord } from "../domain/json.js"
 import { normalizeNodeId, parseFigmaReference, type AuthProfile, type Paging } from "../domain/figma.js"
 import { ProfileName, Scope } from "../domain/ids.js"
 import { serializeJson, successEnvelope, toNdjson } from "../output/envelope.js"
@@ -146,12 +147,21 @@ export const dispatch = async (parsed: ParsedArgs, services: CliServices, option
     const format = flagString(parsed, "format", "png") ?? "png"
     if (!["png", "jpg", "svg", "pdf"].includes(format)) throw new UsageError({ message: "--format must be png, jpg, svg, or pdf", argument: "format" })
     const scale = parseScale(flagString(parsed, "scale"))
-    return remoteCall(parsed, services, "image.render", {
+    const ids = normalizeIds(requireFlag(parsed, "ids"))
+    const out = flagString(parsed, "out")
+    if (out !== undefined && ids.includes(",")) {
+      throw new UsageError({ message: "--out writes one image, so name one node in --ids.", argument: "out" })
+    }
+    const rendered = await remoteCall(parsed, services, "image.render", {
       key: reference.fileKey,
-      ids: normalizeIds(requireFlag(parsed, "ids")),
+      ids,
       format,
       ...(scale === undefined ? {} : { scale })
     }, { fileKey: reference.fileKey })
+    if (out === undefined) return rendered
+    const url = renderedUrl(rendered.data, ids)
+    const saved = await services.imageDownload.save(url, out)
+    return { ...rendered, data: { id: ids, url, path: out, bytes: saved.bytes } }
   }
 
   if (first === "component" && second === "get") return remoteCall(parsed, services, "component.get", { key: requirePositional(parsed, 2, "COMPONENT_KEY") })
@@ -489,7 +499,7 @@ export const renderDispatchResult = (parsed: ParsedArgs, result: DispatchResult,
   if (format !== undefined && !["json", "ndjson", "table", "tree", "png", "jpg", "svg", "pdf"].includes(format)) {
     throw new UsageError({ message: "--format must be json, ndjson, table, or tree for output", argument: "format" })
   }
-  if (format === "tree") return renderTree(data)
+  if (format === "tree") return renderTree(data, { includeHidden: flagBoolean(parsed, "include-hidden") })
   if (flagBoolean(parsed, "raw")) return serializeJson(data, flagBoolean(parsed, "pretty"))
   if (format === "ndjson") return toNdjson(primaryItems(data))
   const json = format === "json" || (format !== "table" && (flagBoolean(parsed, "json") || options.stdoutIsTty !== true))
@@ -512,6 +522,16 @@ const rawResult = (method: string, rawStdout: string): DispatchResult => ({ meth
 const localResult = (method: string, data: unknown): DispatchResult => ({ method, profile: null, data })
 const fileReference = (parsed: ParsedArgs, index: number) => parseFigmaReference(requirePositional(parsed, index, "FILE_OR_URL"))
 const splitCsv = (value: string | undefined): readonly string[] => value === undefined ? [] : value.split(",").map((item) => item.trim()).filter(Boolean)
+// Figma answers null for a node it would not draw, and a null is not a file.
+const renderedUrl = (data: unknown, id: string): string => {
+  const images = isRecord(data) ? data["images"] : undefined
+  const url = isRecord(images) ? images[id] : undefined
+  if (typeof url !== "string" || url === "") {
+    throw new FigmaApiFailed({ message: `Figma rendered no image for ${id}.`, path: "/v1/images" })
+  }
+  return url
+}
+
 const normalizeIds = (value: string): string => splitCsv(value).map(normalizeNodeId).join(",")
 const parsePositiveInteger = (value: string | undefined, name: string): number | undefined => {
   if (value === undefined) return undefined

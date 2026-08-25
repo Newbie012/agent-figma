@@ -5,6 +5,7 @@ const booleanFlags = new Set([
   "ancestors",
   "check",
   "help",
+  "include-hidden",
   "json",
   "no-ancestors",
   "no-color",

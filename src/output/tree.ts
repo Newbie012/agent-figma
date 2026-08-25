@@ -9,6 +9,30 @@ const tokenAt = (node: Record<string, unknown>, key: string): string | undefined
   return Array.isArray(value) && typeof value[0] === "string" ? value[0] : undefined
 }
 
+interface Origin {
+  readonly x: number
+  readonly y: number
+}
+
+const originOf = (node: Record<string, unknown>): Origin | undefined => {
+  const box = node["absoluteBoundingBox"]
+  if (!isRecord(box)) return undefined
+  const x = numberAt(box, "x")
+  const y = numberAt(box, "y")
+  return x === undefined || y === undefined ? undefined : { x, y }
+}
+
+// Figma answers in canvas coordinates, and a layer's place is only meaningful
+// against the node that was asked for. Subtracting here is the difference
+// between reading a design and transcribing one.
+const position = (node: Record<string, unknown>, origin: Origin | undefined): string | undefined => {
+  const own = originOf(node)
+  if (own === undefined || origin === undefined) return undefined
+  return `at=${round(own.x - origin.x)},${round(own.y - origin.y)}`
+}
+
+const isHidden = (node: Record<string, unknown>): boolean => node["visible"] === false
+
 const size = (node: Record<string, unknown>): string | undefined => {
   const box = node["absoluteBoundingBox"]
   if (!isRecord(box)) return undefined
@@ -71,12 +95,13 @@ const typography = (node: Record<string, unknown>): string | undefined => {
   return fontWeight === undefined ? `${round(fontSize)}` : `${round(fontSize)}/${fontWeight}`
 }
 
-const parts = (node: Record<string, unknown>): readonly string[] => {
+const parts = (node: Record<string, unknown>, origin: Origin | undefined): readonly string[] => {
   const gap = measure(node, "itemSpacing")
   const radius = measure(node, "cornerRadius")
   const text = tokenAt(node, "text")
   const fill = tokenAt(node, "fills") ?? tokenAt(node, "fill")
   return [
+    position(node, origin),
     size(node),
     layout(node),
     gap === undefined ? undefined : `gap=${gap}`,
@@ -84,27 +109,42 @@ const parts = (node: Record<string, unknown>): readonly string[] => {
     radius === undefined ? undefined : `radius=${radius}`,
     text === undefined ? undefined : `text=${text}`,
     fill === undefined ? undefined : `fill=${fill}`,
-    typography(node)
+    typography(node),
+    isHidden(node) ? "hidden" : undefined
   ].filter((part): part is string => part !== undefined)
 }
 
-const line = (node: Record<string, unknown>, depth: number): string => {
+const line = (node: Record<string, unknown>, depth: number, origin: Origin | undefined): string => {
   const type = typeof node["type"] === "string" ? node["type"] : "NODE"
   const name = typeof node["name"] === "string" ? node["name"] : ""
   const head = `${"  ".repeat(depth)}${type}${name === "" ? "" : ` ${name}`}`
-  const detail = parts(node)
+  const detail = parts(node, origin)
   return detail.length === 0 ? head : `${head}  ${detail.join("  ")}`
 }
 
-const lines = (node: Record<string, unknown>, depth: number): readonly string[] => {
+const lines = (
+  node: Record<string, unknown>,
+  depth: number,
+  origin: Origin | undefined,
+  includeHidden: boolean
+): readonly string[] => {
+  if (isHidden(node) && !includeHidden) return []
   const children = node["children"]
   const below = Array.isArray(children)
-    ? children.flatMap((child) => (isRecord(child) ? lines(child, depth + 1) : []))
+    ? children.flatMap((child) => (isRecord(child) ? lines(child, depth + 1, origin, includeHidden) : []))
     : []
-  return [line(node, depth), ...below]
+  // The node that was asked for is the frame of reference, so it has no place of its own.
+  return [line(node, depth, depth === 0 ? undefined : origin), ...below]
 }
 
-export const renderTree = (data: unknown): string => {
-  const rendered = documentRoots(data).flatMap((document) => lines(document, 0))
+export interface TreeOptions {
+  /** Layers Figma will not draw are left out, because reading one as real is a wrong conclusion. */
+  readonly includeHidden?: boolean
+}
+
+export const renderTree = (data: unknown, options: TreeOptions = {}): string => {
+  const rendered = documentRoots(data).flatMap((document) =>
+    lines(document, 0, originOf(document), options.includeHidden === true)
+  )
   return rendered.length === 0 ? "(no nodes)\n" : `${rendered.join("\n")}\n`
 }
