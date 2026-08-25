@@ -5,6 +5,7 @@
 Read your Figma files from the command line: files, nodes, comments, versions, rendered images,
 components, and styles. Built so your AI agents can read Figma too. Short alias: `afg`.
 
+<pre align="center">brew install Newbie012/tap/agent-figma</pre>
 <pre align="center">npm install -g @eliya-oss/agent-figma</pre>
 
 <p align="center"><a href="docs/installation.md">Other ways to install</a></p>

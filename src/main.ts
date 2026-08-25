@@ -7,11 +7,13 @@ import { executeCli } from "./application/execute.js"
 const program = Effect.promise(async () => {
   const result = await executeCli(process.argv.slice(2), createLiveServices(), {
     stdoutIsTty: process.stdout.isTTY === true,
-    env: process.env
+    env: process.env,
+    executablePath: process.execPath
   })
   if (result.stdout.length > 0) process.stdout.write(result.stdout)
   if (result.stderr.length > 0) process.stderr.write(result.stderr)
   process.exitCode = result.exitCode
+  await result.finish?.()
 })
 
 NodeRuntime.runMain(program, { disableErrorReporting: true })

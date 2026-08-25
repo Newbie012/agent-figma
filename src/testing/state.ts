@@ -1,5 +1,6 @@
 import type { AuthProfile, FigmaGetInput, FigmaGetResult } from "../domain/figma.js"
 import type { OAuthLoginRequest, OAuthRefreshRequest, OAuthRefreshResult } from "../ports/OAuthFlow.js"
+import type { UpgradeCheck } from "../ports/UpgradeLog.js"
 
 export interface FigmaStub {
   readonly path: string
@@ -20,6 +21,8 @@ export interface DriverState {
   readonly imageSaves: ImageSave[]
   installerOk: boolean
   latestVersion: string | undefined
+  latestAsks: string[]
+  upgradeCheck: UpgradeCheck
   readonly figmaStubs: FigmaStub[]
   readonly figmaCalls: FigmaGetInput[]
   readonly oauthLoginCalls: OAuthLoginRequest[]
@@ -37,6 +40,8 @@ export const createDriverState = (): DriverState => ({
   imageSaves: [],
   installerOk: true,
   latestVersion: undefined,
+  latestAsks: [],
+  upgradeCheck: {},
   figmaStubs: [],
   figmaCalls: [],
   oauthLoginCalls: [],

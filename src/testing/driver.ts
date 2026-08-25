@@ -41,5 +41,7 @@ export class FigmaCliTestDriver implements AsyncDisposable {
     this.state.installerRuns.length = 0
     this.state.installerOk = true
     this.state.latestVersion = undefined
+    this.state.latestAsks.length = 0
+    this.state.upgradeCheck = {}
   }
 }

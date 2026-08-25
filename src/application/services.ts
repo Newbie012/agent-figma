@@ -5,6 +5,7 @@ import type { OAuthFlow } from "../ports/OAuthFlow.js"
 import type { Installer } from "../ports/Installer.js"
 import type { SourceCode } from "../ports/SourceCode.js"
 import type { ImageDownload } from "../ports/ImageDownload.js"
+import type { UpgradeLog } from "../ports/UpgradeLog.js"
 
 export interface CliServices {
   readonly tokenStore: TokenStore
@@ -14,4 +15,5 @@ export interface CliServices {
   readonly sourceCode: SourceCode
   readonly installer: Installer
   readonly imageDownload: ImageDownload
+  readonly upgradeLog: UpgradeLog
 }

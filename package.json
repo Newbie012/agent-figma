@@ -28,6 +28,7 @@
   "scripts": {
     "build": "rolldown -c rolldown.config.mjs",
     "check": "pnpm security:check && pnpm typecheck && pnpm oauth:types && pnpm docs:check && pnpm test:coverage && pnpm build && pnpm smoke && pnpm security:package",
+    "compile": "bun build --compile --minify src/main.ts --outfile agent-figma",
     "dev": "pnpm build && node dist/main.js",
     "docs:check": "node scripts/write-command-reference.mjs --check",
     "docs:write": "node scripts/write-command-reference.mjs",

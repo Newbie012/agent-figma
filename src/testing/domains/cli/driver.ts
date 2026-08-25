@@ -18,6 +18,7 @@ export class CliTestDriver {
     readonly terminal?: CliExecutionOptions
   } = {}): Promise<CliRunResult> {
     const execution = await executeCli(options.args ?? [], this.services, options.terminal)
+    await execution.finish?.()
     return {
       ...execution,
       envelope: parseMaybeJson(execution.stdout),

@@ -5,18 +5,43 @@ import { FigmaCliTestDriver } from "../../src/testing/driver.js"
 const npmInstall = "/usr/local/lib/node_modules/@eliya-oss/agent-figma/dist/main.js"
 const bunInstall = "/opt/bunhome/.bun/install/global/node_modules/@eliya-oss/agent-figma/dist/main.js"
 const checkout = "/srv/projects/agent-figma/src/application/commands.ts"
+const cellar = "/opt/homebrew/Cellar/agent-figma/0.1.0-alpha.5/bin/agent-figma"
+const compiled = "/$bunfs/root/agent-figma"
+const node = "/usr/local/bin/node"
 
 describe("working out how this copy was installed", () => {
   it("reads the route from where the running module sits", () => {
-    expect(routeOf(npmInstall)).toBe("npm")
-    expect(routeOf(bunInstall)).toBe("bun")
-    expect(routeOf(checkout)).toBe("source")
+    expect(routeOf(node, npmInstall)).toBe("npm")
+    expect(routeOf(node, bunInstall)).toBe("bun")
+    expect(routeOf(node, checkout)).toBe("source")
+  })
+
+  it("knows Homebrew put it there, whichever path says so", () => {
+    expect(routeOf(cellar, checkout)).toBe("brew")
+    expect(routeOf(node, cellar)).toBe("brew")
+  })
+
+  it("knows a compiled binary from an installed package", () => {
+    expect(routeOf(compiled, compiled)).toBe("binary")
   })
 
   it("names the command that replaces each install", () => {
+    expect(planFor("brew", cellar).command).toBe("brew upgrade Newbie012/tap/agent-figma")
     expect(planFor("npm", npmInstall).command).toBe("npm install -g @eliya-oss/agent-figma")
     expect(planFor("bun", bunInstall).command).toBe("bun add -g @eliya-oss/agent-figma")
     expect(planFor("source", checkout).command).toContain("git -C /srv/projects/agent-figma pull")
+  })
+
+  it("lets Homebrew replace what Homebrew installed", () => {
+    expect(planFor("brew", cellar).runnable).toBe(true)
+    expect(planFor("brew", cellar).argv).toEqual(["brew", "upgrade", "Newbie012/tap/agent-figma"])
+  })
+
+  it("hands a running binary back to the person, because it cannot rewrite itself", () => {
+    const plan = planFor("binary", compiled)
+    expect(plan.runnable).toBe(false)
+    expect(plan.reason).toContain("cannot rewrite itself")
+    expect(plan.command).toContain("releases/latest/download")
   })
 
   it("refuses to pull a checkout, and says why", () => {
@@ -47,7 +72,7 @@ describe("upgrade", () => {
 
     expect(result.exitCode).toBe(0)
     expect(driver.install.listRuns()).toEqual([["npm", "install", "-g", "@eliya-oss/agent-figma"]])
-    expect(result.stdout).toBe("agent-figma 9.9.9 is installed.\n")
+    expect(result.stdout).toContain("agent-figma 9.9.9 is installed.")
   })
 
   it("asks instead of telling under --check, and runs nothing", async () => {
@@ -106,6 +131,18 @@ describe("upgrade", () => {
 
     expect(result.exitCode).toBe(1)
     expect(result.stdout).toContain("Run it yourself")
+  })
+
+  it("says the skill is upgraded separately, because it is", async () => {
+    await using driver = await FigmaCliTestDriver.create()
+    driver.install.setLatest("9.9.9")
+
+    const result = await driver.cli.run({
+      args: ["upgrade"],
+      terminal: { stdoutIsTty: true, env: { AGENT_FIGMA_UPGRADE_ROUTE: "npm" } }
+    })
+
+    expect(result.stdout).toContain("npx skills update agent-figma")
   })
 
   it("keeps the envelope for a caller, whatever the exit code says", async () => {

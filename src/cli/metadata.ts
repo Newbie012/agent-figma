@@ -1,14 +1,10 @@
-import { createRequire } from "node:module"
+import manifest from "../../package.json" with { type: "json" }
 import type { CommandMetadata, FlagMetadata } from "./types.js"
-
-const require = createRequire(import.meta.url)
-declare const __CLI_VERSION__: string | undefined
-const packageJson = typeof __CLI_VERSION__ === "string" ? { version: __CLI_VERSION__ } : (require("../../package.json") as { version?: string })
 
 export const PRIMARY_COMMAND_NAME = "agent-figma"
 export const SHORT_COMMAND_NAME = "afg"
 const COMMAND_NAMES = [PRIMARY_COMMAND_NAME, SHORT_COMMAND_NAME] as const
-export const CLI_VERSION = packageJson.version ?? "0.0.0"
+export const CLI_VERSION = manifest.version
 
 const DISCOVERY = "Discovery"
 const AUTHENTICATION = "Authentication"

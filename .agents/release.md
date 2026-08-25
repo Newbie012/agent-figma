@@ -108,3 +108,29 @@ pnpm lane main --filter @eliya-oss/agent-figma
 That is a visible diff in `pnpm-workspace.yaml`, and it is the only thing standing between an alpha
 and `latest`. Re-check the bump behavior above first, and drop `publishConfig.tag` and the
 `--tag alpha` in `release:publish` in the same change.
+
+## Binaries and the Homebrew formula
+
+A release publishes to npm, then compiles one binary per platform and attaches it to the GitHub
+release, then points the Homebrew formula at the two macOS ones.
+
+```text
+release  ->  binaries  ->  formula
+```
+
+The binaries are compiled with `bun build --compile`, and each is checked with
+`env -i "PATH=/usr/bin:/bin"` before it is uploaded: a binary that needs a runtime on PATH is not a
+binary, and the version it reports has to be the version being released. `src/cli/metadata.ts`
+imports `package.json` with an import attribute so the version is inlined by whichever bundler builds
+it, rather than read from disk at runtime — a compiled binary has no `package.json` beside it.
+
+The formula job renders `packaging/agent-figma.rb.template` through `scripts/write-formula.mjs`, which
+refuses to write a formula with an unfilled placeholder, and commits it to `Newbie012/homebrew-tap`.
+It needs a `TAP_TOKEN` secret with write access to that repository; without one the job says so and
+does nothing, so the rest of the release still lands. The formula's `test do` block runs the binary:
+its version, its catalog, and that an unauthenticated read refuses with `NotAuthenticated` rather than
+crashing.
+
+A formula pointing at an asset that is not on the release is worse than a formula pointing at the
+previous version, so the job fetches both tarballs first and fails without touching the tap if either
+is missing.

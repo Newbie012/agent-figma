@@ -18,6 +18,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      pending: ${{ steps.plan.outputs.pending }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -141,3 +144,146 @@ jobs:
           else
             gh release create "v$VERSION" --prerelease --title "v$VERSION" --generate-notes
           fi
+
+  binaries:
+    needs: release
+    if: needs.release.outputs.pending == 'true'
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            target: bun-darwin-arm64
+            asset: agent-figma-darwin-arm64
+          - runner: macos-15-intel
+            target: bun-darwin-x64
+            asset: agent-figma-darwin-x64
+          - runner: ubuntu-latest
+            target: bun-linux-x64
+            asset: agent-figma-linux-x64
+          - runner: ubuntu-24.04-arm
+            target: bun-linux-arm64
+            asset: agent-figma-linux-arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: v${{ needs.release.outputs.version }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - run: npm install -g --allow-scripts=pnpm pnpm@12.0.0-rc.6
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compile for ${{ matrix.target }}
+        env:
+          TARGET: ${{ matrix.target }}
+          ASSET: ${{ matrix.asset }}
+        run: bun build --compile --minify --target="$TARGET" src/main.ts --outfile "$ASSET"
+
+      # A binary that needs a runtime on PATH is not a binary, so it is asked with none.
+      - name: Check it answers with no runtime on PATH
+        env:
+          ASSET: ${{ matrix.asset }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          REPORTED=$(env -i "PATH=/usr/bin:/bin" "./$ASSET" --version)
+          if [ "$REPORTED" != "$VERSION" ]; then
+            echo "::error::The $ASSET binary reports $REPORTED where the release is $VERSION."
+            exit 1
+          fi
+          env -i "PATH=/usr/bin:/bin" "./$ASSET" describe --json | node -e '
+            const answer = JSON.parse(require("fs").readFileSync(0, "utf8"))
+            if (answer.ok !== true || answer.data.read_only !== true) { throw new Error("describe did not answer the catalog") }
+          '
+          echo "::notice::$ASSET reports $VERSION and answers describe with no runtime on PATH."
+
+      - name: Pack it down for the wire
+        env:
+          ASSET: ${{ matrix.asset }}
+        run: |
+          tar -czf "$ASSET.tar.gz" "$ASSET"
+          ls -l "$ASSET" "$ASSET.tar.gz"
+
+      - name: Attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.release.outputs.version }}
+          ASSET: ${{ matrix.asset }}
+        run: gh release upload "v$VERSION" "$ASSET" "$ASSET.tar.gz" --clobber
+
+  formula:
+    needs: [release, binaries]
+    if: ${{ !cancelled() && needs.release.outputs.pending == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: v${{ needs.release.outputs.version }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Is the tap token configured
+        id: tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          if [ -n "$TAP_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Add a TAP_TOKEN secret to have this workflow update the Homebrew formula on every release."
+          fi
+
+      - name: Point the formula at the binaries
+        if: steps.tap.outputs.configured == 'true'
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          BASE="https://github.com/${{ github.repository }}/releases/download/v$VERSION"
+          fetch() {
+            if ! curl -fsSL "$1" -o "$2"; then
+              echo "::error::$1 is not on the release, so the formula is left pointing at the version it already builds. Rerun the binary job for v$VERSION, then rerun this one."
+              exit 1
+            fi
+          }
+
+          fetch "$BASE/agent-figma-darwin-arm64.tar.gz" "$RUNNER_TEMP/arm"
+          fetch "$BASE/agent-figma-darwin-x64.tar.gz" "$RUNNER_TEMP/intel"
+
+          TAP="$RUNNER_TEMP/tap"
+          git clone --depth 1 "https://github.com/Newbie012/homebrew-tap.git" "$TAP"
+
+          VERSION="$VERSION" \
+          ARM_URL="$BASE/agent-figma-darwin-arm64.tar.gz" \
+          ARM_SHA="$(sha256sum "$RUNNER_TEMP/arm" | cut -d ' ' -f 1)" \
+          INTEL_URL="$BASE/agent-figma-darwin-x64.tar.gz" \
+          INTEL_SHA="$(sha256sum "$RUNNER_TEMP/intel" | cut -d ' ' -f 1)" \
+          node scripts/write-formula.mjs "$TAP/Formula/agent-figma.rb"
+
+          git -C "$TAP" config user.name "github-actions[bot]"
+          git -C "$TAP" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # The first release adds the formula rather than changing one, and an
+          # unstaged new file looks exactly like nothing to change.
+          git -C "$TAP" add Formula/agent-figma.rb
+          if git -C "$TAP" diff --cached --quiet; then
+            echo "::notice::The formula already builds $VERSION."
+            exit 0
+          fi
+          git -C "$TAP" commit -m "agent-figma $VERSION"
+          # The token authorizes the push and is never written into .git/config.
+          AUTH=$(printf "x-access-token:%s" "$TAP_TOKEN" | base64 | tr -d "\n")
+          git -C "$TAP" -c "http.extraheader=AUTHORIZATION: basic $AUTH" push
+          echo "::notice::The Homebrew formula now installs the $VERSION binaries."

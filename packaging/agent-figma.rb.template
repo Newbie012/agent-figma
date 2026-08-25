@@ -1,0 +1,38 @@
+class AgentFigma < Formula
+  desc "Read-only Figma context for terminals and AI agents"
+  homepage "https://github.com/Newbie012/agent-figma"
+  version "__VERSION__"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "__ARM_URL__"
+      sha256 "__ARM_SHA__"
+    end
+    on_intel do
+      url "__INTEL_URL__"
+      sha256 "__INTEL_SHA__"
+    end
+  end
+
+  def install
+    bin.install Dir["agent-figma-*"].first => "agent-figma"
+    bin.install_symlink bin/"agent-figma" => "afg"
+  end
+
+  test do
+    require "json"
+
+    assert_equal version.to_s, shell_output("#{bin}/agent-figma --version").strip
+
+    catalog = JSON.parse(shell_output("#{bin}/agent-figma describe --json"))
+    assert catalog["read_only"]
+    names = catalog["commands"].map { |command| command["path"].join(" ") }
+    assert_includes names, "node get"
+
+    # No token is configured under `brew test`, so this proves the refusal is the
+    # authentication one and not a crash.
+    refused = shell_output("#{bin}/agent-figma user get --json 2>&1", 1)
+    assert_match "NotAuthenticated", refused
+  end
+end

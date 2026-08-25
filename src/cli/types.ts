@@ -27,9 +27,13 @@ export interface CliExecution {
   readonly exitCode: number
   readonly stdout: string
   readonly stderr: string
+  /** Work worth doing once the output is written, so nothing waits on it. */
+  readonly finish?: () => Promise<void>
 }
 
 export interface CliExecutionOptions {
   readonly stdoutIsTty?: boolean
   readonly env?: Readonly<Record<string, string | undefined>>
+  /** Where the running executable sits, which is what says Homebrew or a compiled binary put it there. */
+  readonly executablePath?: string
 }

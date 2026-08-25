@@ -202,7 +202,7 @@ const compareNode = async (parsed: ParsedArgs, services: CliServices): Promise<D
 const upgrade = async (parsed: ParsedArgs, services: CliServices, options: CliExecutionOptions): Promise<DispatchResult> => {
   const check = flagBoolean(parsed, "check")
   const modulePath = fileURLToPath(import.meta.url)
-  const route = asRoute(options.env?.["AGENT_FIGMA_UPGRADE_ROUTE"]) ?? routeOf(modulePath)
+  const route = asRoute(options.env?.["AGENT_FIGMA_UPGRADE_ROUTE"]) ?? routeOf(options.executablePath ?? modulePath, modulePath)
   const plan = planFor(route, modulePath)
   const finding = findingFor(plan, CLI_VERSION, await services.installer.latest(TAG))
   const running = willUpgrade(finding, check)

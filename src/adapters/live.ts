@@ -7,6 +7,7 @@ import { selectTokenStoreKind } from "./token-store-kind.js"
 import { NodeLocalhostOAuthFlow } from "./localhost-oauth/NodeLocalhostOAuthFlow.js"
 import { FetchImageDownload } from "./image-download/FetchImageDownload.js"
 import { NodeInstaller } from "./installer/NodeInstaller.js"
+import { FileUpgradeLog } from "./upgrade-file/FileUpgradeLog.js"
 import { FileSourceCode } from "./source-fs/FileSourceCode.js"
 
 export const createLiveServices = (env: NodeJS.ProcessEnv = process.env): CliServices => ({
@@ -20,5 +21,6 @@ export const createLiveServices = (env: NodeJS.ProcessEnv = process.env): CliSer
   oauthFlow: NodeLocalhostOAuthFlow.fromEnv(env),
   sourceCode: new FileSourceCode(),
   installer: NodeInstaller.fromEnv(env),
-  imageDownload: new FetchImageDownload()
+  imageDownload: new FetchImageDownload(),
+  upgradeLog: FileUpgradeLog.fromEnv(env)
 })

@@ -9,6 +9,7 @@ import type { OAuthFlow, OAuthLoginRequest, OAuthRefreshRequest, OAuthRefreshRes
 import type { Installer, InstallerRun } from "../ports/Installer.js"
 import type { SourceCode, SourceCodeRead } from "../ports/SourceCode.js"
 import type { ImageDownload, ImageSaved } from "../ports/ImageDownload.js"
+import type { UpgradeCheck, UpgradeLog } from "../ports/UpgradeLog.js"
 import type { DriverState } from "./state.js"
 
 class InMemoryTokenStore implements TokenStore {
@@ -52,6 +53,18 @@ class FakeFigmaRestApi implements FigmaRestApi {
   }
 }
 
+class FakeUpgradeLog implements UpgradeLog {
+  constructor(private readonly state: DriverState) {}
+
+  async read(): Promise<UpgradeCheck> {
+    return this.state.upgradeCheck
+  }
+
+  async write(check: UpgradeCheck): Promise<void> {
+    this.state.upgradeCheck = check
+  }
+}
+
 class FakeImageDownload implements ImageDownload {
   constructor(private readonly state: DriverState) {}
 
@@ -91,7 +104,8 @@ class FakeInstaller implements Installer {
     return { ok: this.state.installerOk }
   }
 
-  async latest(): Promise<string | undefined> {
+  async latest(tag: string): Promise<string | undefined> {
+    this.state.latestAsks.push(tag)
     return this.state.latestVersion
   }
 }
@@ -124,5 +138,6 @@ export const createTestServices = (state: DriverState): CliServices => ({
   oauthFlow: new FakeOAuthFlow(state),
   sourceCode: new FakeSourceCode(state),
   installer: new FakeInstaller(state),
-  imageDownload: new FakeImageDownload(state)
+  imageDownload: new FakeImageDownload(state),
+  upgradeLog: new FakeUpgradeLog(state)
 })
