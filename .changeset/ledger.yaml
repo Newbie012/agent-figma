@@ -35,3 +35,8 @@
   dir: ""
   intents:
     - tokens-are-how-you-sign-in
+"@eliya-oss/agent-figma@0.1.0-alpha.7":
+  dir: ""
+  intents:
+    - homebrew-installs-it-and-it-says-when-it-is-old
+    - reading-a-design-instead-of-transcribing-one

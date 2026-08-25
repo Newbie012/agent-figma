@@ -1,6 +1,6 @@
 {
   "name": "@eliya-oss/agent-figma",
-  "version": "0.1.0-alpha.6",
+  "version": "0.1.0-alpha.7",
   "description": "Read Figma context from the command line for humans and AI agents.",
   "repository": {
     "type": "git",
